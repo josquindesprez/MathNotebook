@@ -66,6 +66,13 @@ export function MathCell({ cell, isEditing, onFocus }: Props) {
     // SYNTAX.md, "Linguaggio naturale". Si aggiungono a quelle di default,
     // non le sostituiscono.
     mf.inlineShortcuts = { ...mf.inlineShortcuts, ...NATURAL_LANGUAGE_INLINE_SHORTCUTS, ...ITALIAN_NUMBER_INLINE_SHORTCUTS };
+    // Di default MathLive avvolge il LaTeX copiato (Ctrl+C) in "$$ ... $$"
+    // (vedi CLIPBOARD_LATEX_BEGIN/END nel suo sorgente): incollato tra due
+    // "$" già scritti in una Text Cell produce "$$$ ... $$$", che KaTeX non
+    // renderizza. Restituendo il LaTeX "nudo" il copia-incolla tra Math
+    // Cell e math inline di una Text Cell funziona senza sorprese, e
+    // Ctrl+C nativo si comporta come "Copy as LaTeX" (Ctrl+Shift+C).
+    mf.onExport = (_field, latex) => latex;
     return () => unregisterMathField(cell.id);
   }, [cell.id]);
 

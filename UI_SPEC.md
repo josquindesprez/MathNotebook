@@ -79,6 +79,11 @@ DOCUMENT_FORMAT.md).
 - Matematica inline con `$...$`: renderizzata con KaTeX in sola lettura
   all'interno del testo (per editing strutturato di una singola formula si
   usa una Math Cell dedicata).
+- Flusso copia-incolla: selezionare in una Math Cell e premere `Ctrl+C`
+  copia LaTeX "nudo", pronto per essere incollato tra due `$` già scritti
+  in una Text Cell. `MathCell.tsx` sovrascrive il comportamento di default
+  di MathLive (che avvolgerebbe il LaTeX copiato in `$$...$$`, causando
+  `$$$...$$$` se incollato tra `$...$` già presenti — non renderizzabile).
 
 ### Math Cell
 
