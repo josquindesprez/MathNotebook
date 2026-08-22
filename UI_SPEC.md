@@ -57,6 +57,21 @@ Click su una cella: seleziona. Doppio click / click sul contenuto: entra in
 editing. Frecce ↑/↓ quando la cella è selezionata (non editing) spostano la
 selezione come `Ctrl+↑/↓`.
 
+### Raggruppamento celle
+
+Un bordo sinistro colorato (3px) permette di raggruppare visivamente
+sequenze di celle correlate — utile ad esempio per separare i passaggi di
+un esercizio dal successivo. Nessuna scelta di colore richiesta: dal menu
+"..." di una cella, **Start new group here** apre un nuovo gruppo a
+partire da lì, con un colore diverso (ciclico su una tavolozza di 6, vedi
+`model.ts`/`computeGroupColorIndices`) rispetto al gruppo precedente;
+**Merge with previous group** lo riunisce al gruppo sopra. Il colore non è
+mai scelto dall'utente, solo "diverso dal precedente" — coerente con la
+richiesta originale: comporlo manualmente aggiungerebbe una scelta
+superflua. Puramente visivo: non incide su parsing, valutazione o
+struttura del documento (campo opzionale `groupStart` su ogni cella, vedi
+DOCUMENT_FORMAT.md).
+
 ### Text Cell
 
 - Editor testo semplice con Markdown di base: `**bold**`, `*italic*`,
@@ -71,9 +86,11 @@ selezione come `Ctrl+↑/↓`.
   colonna, senza bordo visibile finché non è in focus (per sembrare pagina,
   non form).
 - Digitare sintassi rapida (SYNTAX.md) o LaTeX diretto è entrambi permesso;
-  il riconoscimento della sintassi rapida avviene "as you type" tramite gli
-  `inlineShortcuts` di MathLive più un intercettore custom per i pattern non
-  nativi (`frac(...)`, matrici, ecc. — vedi ARCHITECTURE.md).
+  il riconoscimento avviene "as you type" tramite gli `inlineShortcuts`
+  nativi di MathLive (sqrt, lettere greche, `>=`, ...) più le nostre
+  aggiunte registrate sullo stesso meccanismo — alias in linguaggio
+  naturale (`alla`, `per`, `fratto`, ...) e numeri in italiano — vedi
+  ARCHITECTURE.md e components/cells/MathCell.tsx.
 - Nessuna valutazione automatica: la cella mostra solo la struttura scritta.
 - Placeholder vuoti sono renderizzati come un piccolo quadrato tratteggiato
   `▢`, coerente con MathLive di default.

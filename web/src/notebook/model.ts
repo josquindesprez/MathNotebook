@@ -3,21 +3,32 @@
 import type { MathNode } from '../ast/types';
 import { placeholder } from '../ast/build';
 
-export const CURRENT_SCHEMA_VERSION = 1;
+// v2: RelationNode è passata da {op,left,right} a {terms[],ops[]} per
+// supportare le catene di relazioni ("a = b = c"). Vedi
+// document-io.ts (migrazione 1 -> 2) e DOCUMENT_FORMAT.md.
+export const CURRENT_SCHEMA_VERSION = 2;
 
-export interface TextCell {
+// true = questa cella apre un nuovo gruppo visuale: il colore del bordo
+// sinistro cambia rispetto al gruppo precedente (ciclico, non scelto
+// dall'utente — vedi UI_SPEC.md, "Raggruppamento celle"). Campo opzionale
+// e additivo: non richiede una nuova versione di schema.
+interface GroupableCell {
+  groupStart?: boolean;
+}
+
+export interface TextCell extends GroupableCell {
   id: string;
   type: 'text';
   markdown: string;
 }
 
-export interface MathCell {
+export interface MathCell extends GroupableCell {
   id: string;
   type: 'math';
   ast: MathNode;
 }
 
-export interface CalculationCell {
+export interface CalculationCell extends GroupableCell {
   id: string;
   type: 'calculation';
   ast: MathNode;
@@ -28,7 +39,7 @@ export interface CalculationCell {
   };
 }
 
-export interface GraphCell {
+export interface GraphCell extends GroupableCell {
   id: string;
   type: 'graph';
   expressions: { id: string; ast: MathNode; color?: string; visible: boolean }[];
@@ -87,4 +98,23 @@ export function createGraphCell(): GraphCell {
 
 export function duplicateCell(cell: Cell): Cell {
   return { ...structuredClone(cell), id: uuid() };
+}
+
+export const GROUP_COLOR_COUNT = 6;
+
+/** Indice colore di gruppo (0..GROUP_COLOR_COUNT-1) per ogni cella, nello
+ * stesso ordine di `cells`. La prima cella è sempre l'inizio del primo
+ * gruppo; ogni cella con `groupStart: true` incrementa il colore
+ * (ciclicamente) rispetto al gruppo precedente. Vedi UI_SPEC.md. */
+export function computeGroupColorIndices(cells: Cell[]): number[] {
+  let current = 0;
+  let seenFirst = false;
+  return cells.map((cell) => {
+    if (!seenFirst) {
+      seenFirst = true;
+    } else if (cell.groupStart) {
+      current = (current + 1) % GROUP_COLOR_COUNT;
+    }
+    return current;
+  });
 }

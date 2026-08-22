@@ -80,10 +80,15 @@ export const root = (radicand: MathNode, index?: MathNode): RootNode => ({
 export const relation = (op: RelationOp, left: MathNode, right: MathNode): RelationNode => ({
   id: nextId(),
   type: 'RelationNode',
-  op,
-  left,
-  right,
+  terms: [left, right],
+  ops: [op],
 });
+
+/** Aggiunge un passaggio a una catena di relazioni già esistente: usato per
+ * "a = b = c" o "a < b < c" (vedi SYNTAX.md, "Catene di relazioni"). */
+export function extendRelationChain(chain: RelationNode, op: RelationOp, next: MathNode): RelationNode {
+  return { ...chain, id: nextId(), terms: [...chain.terms, next], ops: [...chain.ops, op] };
+}
 
 export const func = (name: string, args: MathNode[]): FunctionNode => ({
   id: nextId(),

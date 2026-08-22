@@ -117,8 +117,13 @@ export function toLatex(node: MathNode): string {
       return `\\lim_{${toLatex(node.variable)} \\to ${toLatex(node.approaches)}${dir}} ${toLatex(node.expression)}`;
     }
 
-    case 'RelationNode':
-      return `${toLatex(node.left)} ${RELATION_LATEX[node.op] ?? node.op} ${toLatex(node.right)}`;
+    case 'RelationNode': {
+      const parts = [toLatex(node.terms[0])];
+      for (let i = 0; i < node.ops.length; i += 1) {
+        parts.push(RELATION_LATEX[node.ops[i]] ?? node.ops[i], toLatex(node.terms[i + 1]));
+      }
+      return parts.join(' ');
+    }
 
     case 'SetNode': {
       const op = SET_OP_LATEX[node.op] ?? node.op;
@@ -131,6 +136,9 @@ export function toLatex(node: MathNode): string {
     }
 
     case 'SystemNode': {
+      if (node.bracketed === false) {
+        return node.equations.map(toLatex).join(', ');
+      }
       const eqs = node.equations.map(toLatex).join(' \\\\\n');
       return `\\begin{cases}\n${eqs}\n\\end{cases}`;
     }

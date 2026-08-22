@@ -102,8 +102,13 @@ export function toTypst(node: MathNode): string {
     case 'LimitNode':
       return `lim_(${toTypst(node.variable)} -> ${toTypst(node.approaches)}) ${toTypst(node.expression)}`;
 
-    case 'RelationNode':
-      return `${toTypst(node.left)} ${RELATION_TYPST[node.op] ?? node.op} ${toTypst(node.right)}`;
+    case 'RelationNode': {
+      const parts = [toTypst(node.terms[0])];
+      for (let i = 0; i < node.ops.length; i += 1) {
+        parts.push(RELATION_TYPST[node.ops[i]] ?? node.ops[i], toTypst(node.terms[i + 1]));
+      }
+      return parts.join(' ');
+    }
 
     case 'SetNode': {
       const op = SET_OP_TYPST[node.op] ?? node.op;
@@ -114,6 +119,7 @@ export function toTypst(node: MathNode): string {
       return `cases(${node.cases.map((c) => `${toTypst(c.expression)} & ${toTypst(c.condition)}`).join(', ')})`;
 
     case 'SystemNode':
+      if (node.bracketed === false) return node.equations.map(toTypst).join(', ');
       return `cases(${node.equations.map(toTypst).join(', ')})`;
 
     case 'PlaceholderNode':

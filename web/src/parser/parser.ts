@@ -3,9 +3,10 @@
 // nella pipeline unificata (stessa AST prodotta dalla palette e da MathLive).
 
 import { tokenize, type Token, type TokenType } from './tokenizer';
-import type { MathNode, RelationOp, SetOp } from '../ast/types';
+import type { MathNode, RelationNode, RelationOp, SetOp } from '../ast/types';
 import {
   binary,
+  extendRelationChain,
   func,
   fraction,
   ident,
@@ -126,13 +127,27 @@ class Parser {
     return null;
   }
 
+  // Più affermazioni indipendenti nella stessa cella, separate da virgola
+  // ("A = [[1,2],[3,4]], B = [[5,6],[7,8]]" — vedi SYNTAX.md): diventano un
+  // SystemNode non racchiuso in graffa (bracketed:false), a differenza del
+  // "sistema di equazioni" da risolvere insieme (quello sì con la graffa).
   parseDocument(): MathNode {
     if (this.atEnd()) return { id: 'empty', type: 'PlaceholderNode' };
-    const expr = this.parseTypeAnnotation();
-    if (!this.atEnd()) {
-      throw new ParseError(`Token inatteso "${this.peek().text}" alla posizione ${this.peek().pos}`);
+    const first = this.parseTypeAnnotation();
+    if (this.atEnd()) return first;
+
+    if (this.check('COMMA')) {
+      const statements = [first];
+      while (this.match('COMMA')) {
+        statements.push(this.parseTypeAnnotation());
+      }
+      if (!this.atEnd()) {
+        throw new ParseError(`Token inatteso "${this.peek().text}" alla posizione ${this.peek().pos}`);
+      }
+      return { id: `sys${Date.now().toString(36)}`, type: 'SystemNode', equations: statements, bracketed: false };
     }
-    return expr;
+
+    throw new ParseError(`Token inatteso "${this.peek().text}" alla posizione ${this.peek().pos}`);
   }
 
   // ---- Segnatura di funzione: "T:R^2 -> R^3" (vedi SYNTAX.md) ----
@@ -156,30 +171,32 @@ class Parser {
   }
 
   // ---- Relazioni / insiemi (precedenza più bassa) ----
+  // "a = b = c" o "a < b < c" (catena di passaggi/disuguaglianze, vedi
+  // SYNTAX.md) restano UNA sola RelationNode con più termini, non relazioni
+  // annidate: continuiamo a incatenare finché troviamo un altro operatore
+  // di relazione.
   private parseRelational(): MathNode {
-    const left = this.parseAdditive();
+    const first = this.parseAdditive();
+    let chain: RelationNode | undefined;
+
+    for (;;) {
+      const tok = this.peek();
+      const relOp: RelationOp | null = RELATION_TOKENS[tok.type] ?? (tok.type === 'IDENT' && tok.text === 'equiv' ? 'equiv' : null);
+      if (!relOp) break;
+      this.advance();
+      const next = this.parseAdditive();
+      chain = chain ? extendRelationChain(chain, relOp, next) : relation(relOp, first, next);
+    }
+    if (chain) return chain;
+
     const tok = this.peek();
-
-    const relOp = RELATION_TOKENS[tok.type];
-    if (relOp) {
-      this.advance();
-      const right = this.parseAdditive();
-      return relation(relOp, left, right);
-    }
-
-    if (tok.type === 'IDENT' && tok.text === 'equiv') {
-      this.advance();
-      const right = this.parseAdditive();
-      return relation('equiv', left, right);
-    }
-
     if (tok.type === 'IDENT' && SET_KEYWORDS[tok.text]) {
       this.advance();
       const right = this.parseAdditive();
-      return { id: `s${Date.now().toString(36)}`, type: 'SetNode', op: SET_KEYWORDS[tok.text], operands: [left, right] };
+      return { id: `s${Date.now().toString(36)}`, type: 'SetNode', op: SET_KEYWORDS[tok.text], operands: [first, right] };
     }
 
-    return left;
+    return first;
   }
 
   // ---- Additiva ----
@@ -223,10 +240,10 @@ class Parser {
 
   private canStartImplicitFactor(): boolean {
     const tok = this.peek();
-    // NB: PIPE non è incluso deliberatamente: "|" apre e chiude il valore
-    // assoluto con lo stesso token, e trattarlo come inizio di un fattore
-    // implicito farebbe scambiare il "|" di chiusura per una nuova apertura
-    // (vedi parsePrimary/PIPE).
+    // NB: PIPE e DOUBLE_PIPE non sono inclusi deliberatamente: "|"/"||"
+    // aprono e chiudono valore assoluto/norma con lo stesso token, e
+    // trattarli come inizio di un fattore implicito farebbe scambiare la
+    // chiusura per una nuova apertura (vedi parsePrimary/PIPE/DOUBLE_PIPE).
     if (tok.type === 'NUMBER' || tok.type === 'LPAREN' || tok.type === 'LBRACKET') return true;
     if (tok.type === 'IDENT') {
       // parole chiave che chiudono l'espressione corrente, o che sono già
@@ -327,6 +344,14 @@ class Parser {
       const inner = this.parseAdditive();
       this.expect('PIPE', 'Attesa "|" di chiusura per il valore assoluto');
       return func('abs', [inner]);
+    }
+
+    // "||v||" = norma, come "norm(v)" (vedi SYNTAX.md).
+    if (tok.type === 'DOUBLE_PIPE') {
+      this.advance();
+      const inner = this.parseAdditive();
+      this.expect('DOUBLE_PIPE', 'Attesa "||" di chiusura per la norma');
+      return func('norm', [inner]);
     }
 
     if (tok.type === 'LBRACKET') {

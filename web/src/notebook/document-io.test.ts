@@ -31,4 +31,39 @@ describe('serializeNotebook / deserializeNotebook', () => {
     const future = { ...doc, schemaVersion: CURRENT_SCHEMA_VERSION + 1 };
     expect(() => deserializeNotebook(JSON.stringify(future))).toThrow(UnsupportedSchemaVersionError);
   });
+
+  it('migra un file v1 con RelationNode nella vecchia forma {op,left,right}', () => {
+    const v1Json = JSON.stringify({
+      schemaVersion: 1,
+      id: 'doc1',
+      title: 'Vecchio file',
+      createdAt: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
+      settings: { theme: 'system' },
+      cells: [
+        {
+          id: 'c1',
+          type: 'math',
+          ast: {
+            id: 'n1',
+            type: 'RelationNode',
+            op: '=',
+            left: { id: 'n2', type: 'IdentifierNode', name: 'A' },
+            right: { id: 'n3', type: 'NumberNode', value: '1' },
+          },
+        },
+      ],
+    });
+
+    const migrated = deserializeNotebook(v1Json);
+    expect(migrated.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+    const cell = migrated.cells[0];
+    if (cell.type !== 'math') throw new Error('unreachable');
+    expect(cell.ast).toMatchObject({
+      type: 'RelationNode',
+      ops: ['='],
+      terms: [{ name: 'A' }, { value: '1' }],
+    });
+    expect(toLatex(cell.ast)).toBe('A = 1');
+  });
 });

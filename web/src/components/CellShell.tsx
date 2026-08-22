@@ -15,14 +15,21 @@ interface Props {
   isEditing: boolean;
   onSelect: () => void;
   children: ReactNode;
+  /** Indice colore di gruppo (0..GROUP_COLOR_COUNT-1) già calcolato da
+   * NotebookView su tutto l'elenco celle, vedi model.ts/computeGroupColorIndices. */
+  groupColorIndex: number;
+  /** false solo per la prima cella del notebook: non ha senso "iniziare un
+   * gruppo" lì, è già l'inizio del primo. */
+  canToggleGroup: boolean;
 }
 
-export function CellShell({ cell, isSelected, isEditing, onSelect, children }: Props) {
+export function CellShell({ cell, isSelected, isEditing, onSelect, children, groupColorIndex, canToggleGroup }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const duplicateCellById = useNotebookStore((s) => s.duplicateCellById);
   const deleteCellById = useNotebookStore((s) => s.deleteCellById);
   const moveCell = useNotebookStore((s) => s.moveCell);
   const changeCellType = useNotebookStore((s) => s.changeCellType);
+  const toggleGroupStart = useNotebookStore((s) => s.toggleGroupStart);
 
   return (
     <div
@@ -33,6 +40,7 @@ export function CellShell({ cell, isSelected, isEditing, onSelect, children }: P
         onSelect();
       }}
       data-cell-id={cell.id}
+      data-group-color={groupColorIndex}
     >
       <div className="cell-gutter">
         <span className="cell-type-badge">{TYPE_LABEL[cell.type]}</span>
@@ -58,6 +66,11 @@ export function CellShell({ cell, isSelected, isEditing, onSelect, children }: P
                 </button>
               ))}
               <div className="cell-menu-separator" />
+              {canToggleGroup && (
+                <button onClick={() => (toggleGroupStart(cell.id), setMenuOpen(false))}>
+                  {cell.groupStart ? 'Merge with previous group' : 'Start new group here'}
+                </button>
+              )}
               <button className="cell-menu-danger" onClick={() => (deleteCellById(cell.id), setMenuOpen(false))}>
                 Delete cell
               </button>

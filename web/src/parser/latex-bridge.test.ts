@@ -11,12 +11,12 @@ import { parseMathInput } from './parser';
 describe('latexToAst — round-trip di base', () => {
   it('"A=B" produce una RelationNode, non un prodotto con un identificatore fittizio "="', () => {
     const ast = latexToAst('A=B');
-    expect(ast).toMatchObject({ type: 'RelationNode', op: '=', left: { name: 'A' }, right: { name: 'B' } });
+    expect(ast).toMatchObject({ type: 'RelationNode', ops: ['='], terms: [{ name: 'A' }, { name: 'B' }] });
   });
 
   it('"x < 3" e "x > 3" producono RelationNode con l\'operatore corretto', () => {
-    expect(latexToAst('x<3')).toMatchObject({ type: 'RelationNode', op: '<' });
-    expect(latexToAst('x>3')).toMatchObject({ type: 'RelationNode', op: '>' });
+    expect(latexToAst('x<3')).toMatchObject({ type: 'RelationNode', ops: ['<'] });
+    expect(latexToAst('x>3')).toMatchObject({ type: 'RelationNode', ops: ['>'] });
   });
 
   it('round-trip AST -> LaTeX -> AST per una potenza e una frazione', () => {
@@ -53,8 +53,25 @@ describe('latexToAst — round-trip di base', () => {
 
   it('"T\\colon\\mathbb{R}^2 \\to \\mathbb{R}^3" produce la segnatura di funzione attesa', () => {
     const ast = latexToAst('T\\colon\\mathbb{R}^2 \\to \\mathbb{R}^3');
-    expect(ast).toMatchObject({ type: 'RelationNode', op: ':', left: { name: 'T' } });
+    expect(ast).toMatchObject({ type: 'RelationNode', ops: [':'] });
     if (ast.type !== 'RelationNode') throw new Error('unreachable');
-    expect(ast.right).toMatchObject({ type: 'RelationNode', op: 'to' });
+    expect(ast.terms[0]).toMatchObject({ name: 'T' });
+    expect(ast.terms[1]).toMatchObject({ type: 'RelationNode', ops: ['to'] });
+  });
+
+  it('round-trip di una catena di relazioni "2+2=4=2*2"', () => {
+    const original = parseMathInput('2+2 = 4 = 2*2');
+    const roundTripped = latexToAst(toLatex(original));
+    expect(roundTripped).toMatchObject({ type: 'RelationNode', ops: ['=', '='] });
+    if (roundTripped.type !== 'RelationNode') throw new Error('unreachable');
+    expect(roundTripped.terms).toHaveLength(3);
+  });
+
+  it('round-trip di affermazioni multiple separate da virgola (SystemNode non racchiuso)', () => {
+    const original = parseMathInput('A = [[1,2],[3,4]], B = [[5,6],[7,8]]');
+    const roundTripped = latexToAst(toLatex(original));
+    expect(roundTripped).toMatchObject({ type: 'SystemNode', bracketed: false });
+    if (roundTripped.type !== 'SystemNode') throw new Error('unreachable');
+    expect(roundTripped.equations).toHaveLength(2);
   });
 });

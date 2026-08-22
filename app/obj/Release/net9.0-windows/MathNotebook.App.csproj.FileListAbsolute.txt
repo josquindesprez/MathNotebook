@@ -1,7 +1,6 @@
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\runtimes\win-x86\native\WebView2Loader.dll
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\runtimes\win-x64\native\WebView2Loader.dll
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\runtimes\win-arm64\native\WebView2Loader.dll
-C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-DyxSXP36.css
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\KaTeX_AMS-Regular-BQhdFMY1.woff2
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\KaTeX_AMS-Regular-DMm9YOAa.woff
 C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\KaTeX_AMS-Regular-DRggAlZN.ttf
@@ -90,4 +89,6 @@ C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\refint\MathNotebook.d
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.pdb
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.App.genruntimeconfig.cache
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\ref\MathNotebook.dll
-C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-B18a0PlN.js
+C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-RlDY-7nV.js
+C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-XfzQVCsM.css
+C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.App.sourcelink.json

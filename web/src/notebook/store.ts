@@ -47,6 +47,7 @@ interface NotebookState {
   moveCellSelection: (id: string, direction: 'up' | 'down') => void;
   moveCell: (id: string, direction: 'up' | 'down') => void;
   changeCellType: (id: string, type: Cell['type']) => void;
+  toggleGroupStart: (id: string) => void;
 
   undo: () => void;
   redo: () => void;
@@ -169,6 +170,12 @@ export const useNotebookStore = create<NotebookState>((set, get) => ({
       if (type === 'math' || type === 'calculation') return createRetyped(c, { ...createMathCell(), type });
       return c;
     });
+    set({ doc: { ...doc, cells }, past: [...past, snapshot(doc.cells)].slice(-HISTORY_LIMIT), future: [], saveState: 'unsaved' });
+  },
+
+  toggleGroupStart: (id) => {
+    const { doc, past } = get();
+    const cells = doc.cells.map((c) => (c.id === id ? { ...c, groupStart: !c.groupStart } : c));
     set({ doc: { ...doc, cells }, past: [...past, snapshot(doc.cells)].slice(-HISTORY_LIMIT), future: [], saveState: 'unsaved' });
   },
 

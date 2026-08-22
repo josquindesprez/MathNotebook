@@ -45,6 +45,35 @@
 - [x] Verifica visuale nella shell WPF reale (screenshot: categorie Sets/
       Vectors/Matrices/Linear Algebra nella palette, dialog Custom matrix)
 
+## Milestone 2.2 — feedback d'uso reale (completata)
+
+Dopo aver iniziato a usare l'app per esercizi di algebra lineare:
+
+- [x] **MathLive dal vivo non riconosceva affatto la sintassi rapida**:
+      il parser/tokenizer esisteva solo per test e inserimenti da palette,
+      mai collegato al campo di editing vero. Collegato tramite gli
+      `inlineShortcuts` nativi di MathLive (`#@` per "avvolgi l'atomo
+      precedente", lo stesso meccanismo dei tasti ^² e frazione della sua
+      tastiera virtuale) — vedi `MathCell.tsx`/`naturalLanguage.ts`.
+- [x] Alias in linguaggio naturale italiano (`alla`, `per`, `fratto`,
+      `diviso`, `piu`, `meno`, `radice`), sia con spazi sia incollati a un
+      numero o una singola lettera (`2alla3`, `2allax`).
+- [x] Numeri scritti in italiano, 0-999 (`quarantadue` → 42), generati
+      algoritmicamente (non a dizionario) e utilizzabili dentro espressioni
+      più ampie — `web/src/parser/italianNumbers.ts`.
+- [x] Catene di relazioni: `RelationNode` da forma binaria `{op,left,right}`
+      a forma a catena `{terms[],ops[]}`, per "2+2 = 4 = 2*2" come un solo
+      nodo — richiesto bump `schemaVersion` 1→2 e migrazione (vedi
+      DOCUMENT_FORMAT.md).
+- [x] `||v||` come alias di `norm(v)`.
+- [x] Affermazioni multiple senza operazioni tra loro nella stessa cella
+      ("A = [[1,2],[3,4]], B = [[5,6],[7,8]]"), rese come `SystemNode` non
+      racchiuso in graffa (campo `bracketed`, additivo).
+- [x] Raggruppamento celle per colore del bordo sinistro, ciclico, non
+      scelto dall'utente (`groupStart` su ogni cella, `Start new group
+      here`/`Merge with previous group` dal menu cella).
+- [x] 120 test totali, tutti verdi; build Debug e Release rigenerate.
+
 ## Milestone 3 — calcolo differenziale
 
 - Derivative, second derivative, partial derivative

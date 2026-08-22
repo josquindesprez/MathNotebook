@@ -1,5 +1,6 @@
-import { useCallback, type KeyboardEvent } from 'react';
+import { useCallback, useMemo, type KeyboardEvent } from 'react';
 import { useNotebookStore } from '../notebook/store';
+import { computeGroupColorIndices } from '../notebook/model';
 import { CellShell } from './CellShell';
 import { TextCell } from './cells/TextCell';
 import { MathCell } from './cells/MathCell';
@@ -138,13 +139,23 @@ export function NotebookView() {
     [selectedCellId, editingCellId, doc.cells, confirmAndAdvance, deleteCellById, duplicateCellById, moveCell, moveCellSelection, setEditing]
   );
 
+  const groupColors = useMemo(() => computeGroupColorIndices(doc.cells), [doc.cells]);
+
   return (
     <div className="notebook-view" onKeyDown={handleKeyDown}>
-      {doc.cells.map((cell) => {
+      {doc.cells.map((cell, index) => {
         const isSelected = cell.id === selectedCellId;
         const isEditing = cell.id === editingCellId;
         return (
-          <CellShell key={cell.id} cell={cell} isSelected={isSelected} isEditing={isEditing} onSelect={() => selectCell(cell.id)}>
+          <CellShell
+            key={cell.id}
+            cell={cell}
+            isSelected={isSelected}
+            isEditing={isEditing}
+            onSelect={() => selectCell(cell.id)}
+            groupColorIndex={groupColors[index]}
+            canToggleGroup={index > 0}
+          >
             {cell.type === 'text' && (
               <TextCell cell={cell} isEditing={isEditing} onFocus={() => (selectCell(cell.id), setEditing(cell.id))} />
             )}

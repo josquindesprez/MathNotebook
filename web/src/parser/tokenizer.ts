@@ -28,6 +28,7 @@ export type TokenType =
   | 'APPROX'
   | 'ARROW'
   | 'PIPE'
+  | 'DOUBLE_PIPE'
   | 'EOF';
 
 export interface Token {
@@ -100,6 +101,11 @@ export function tokenize(input: string): Token[] {
     }
     if (two === '->') {
       tokens.push({ type: 'ARROW', text: two, pos: i });
+      i += 2;
+      continue;
+    }
+    if (two === '||') {
+      tokens.push({ type: 'DOUBLE_PIPE', text: two, pos: i });
       i += 2;
       continue;
     }

@@ -11,8 +11,37 @@ export class UnsupportedSchemaVersionError extends Error {
   }
 }
 
-// Migrazioni pure (docV_N) => docV_{N+1}. Vuoto finché esiste solo la v1.
-const MIGRATIONS: Record<number, (doc: any) => any> = {};
+/** Cammina ricorsivamente qualunque struttura JSON (indipendentemente dai
+ * nomi dei campi: left/right, base/exponent, args, rows, ...) e converte
+ * ogni RelationNode dalla forma v1 {op,left,right} alla forma v2
+ * {terms[],ops[]} (vedi ast/types.ts). Generico apposta: non deve sapere
+ * nulla della forma degli altri nodi AST per raggiungere quelli annidati. */
+function migrateRelationNodeShapeV1toV2(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(migrateRelationNodeShapeV1toV2);
+  if (node && typeof node === 'object') {
+    const obj = node as Record<string, unknown>;
+    let working: Record<string, unknown> = obj;
+    if (obj.type === 'RelationNode' && 'left' in obj && 'right' in obj && 'op' in obj) {
+      const { op, left, right, ...rest } = obj;
+      working = { ...rest, terms: [left, right], ops: [op] };
+    }
+    const migrated: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(working)) {
+      migrated[key] = migrateRelationNodeShapeV1toV2(value);
+    }
+    return migrated;
+  }
+  return node;
+}
+
+// Migrazioni pure (docV_N) => docV_{N+1}.
+const MIGRATIONS: Record<number, (doc: any) => any> = {
+  1: (doc) => ({
+    ...doc,
+    schemaVersion: 2,
+    cells: migrateRelationNodeShapeV1toV2(doc.cells),
+  }),
+};
 
 export function serializeNotebook(doc: NotebookDocument): string {
   return JSON.stringify(doc, null, 2);

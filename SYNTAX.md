@@ -140,6 +140,34 @@ Pi Sigma Phi Omega
 | `in` | ∈ |
 | `notin` | ∉ |
 | `\|x\|` | valore assoluto \|x\| (`FunctionNode` `abs`) |
+| `\|\|v\|\|` | norma ‖v‖ (equivalente a `norm(v)`) |
+
+## Catene di relazioni
+
+Più passaggi di calcolo o disuguaglianze sulla stessa riga restano **una
+sola** `RelationNode`, con più termini invece di uno solo (`terms: [...]`,
+`ops: [...]`), non relazioni annidate:
+
+```
+2+2 = 4 = 2*2        passaggi di calcolo, resi come "2 + 2 = 4 = 2 · 2"
+a < b < c             disuguaglianze incatenate
+```
+
+## Affermazioni multiple nella stessa cella
+
+Più affermazioni indipendenti, senza operazioni tra loro, separate da
+virgola — utile ad esempio per dichiarare due matrici insieme prima di
+un esercizio:
+
+```
+A = [[1,2],[3,4]], B = [[5,6],[7,8]]
+```
+
+Diventa un `SystemNode` **non** racchiuso in graffa (a differenza del
+"sistema di equazioni" da risolvere insieme, che invece la usa — vedi
+ARCHITECTURE.md/ROADMAP.md M3): il rendering è semplicemente
+`A = ..., B = ...`, senza implicare che le due cose vadano risolte
+insieme.
 
 ## Insiemi (M2)
 

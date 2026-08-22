@@ -137,11 +137,13 @@ export interface LimitNode extends NodeBase {
   direction?: '+' | '-';
 }
 
+// Una catena di relazioni: "a = b = c" (passaggi di calcolo) o "a < b < c"
+// (disuguaglianze incatenate). terms.length === ops.length + 1 sempre;
+// il caso più comune (una sola relazione) è terms=[left,right], ops=[op].
 export interface RelationNode extends NodeBase {
   type: 'RelationNode';
-  op: RelationOp;
-  left: MathNode;
-  right: MathNode;
+  terms: MathNode[];
+  ops: RelationOp[];
 }
 
 export interface SetNode extends NodeBase {
@@ -158,6 +160,11 @@ export interface PiecewiseNode extends NodeBase {
 export interface SystemNode extends NodeBase {
   type: 'SystemNode';
   equations: MathNode[];
+  // true (o assente, per compatibilità) = sistema da risolvere insieme,
+  // reso con la graffa "\begin{cases}"; false = più affermazioni
+  // indipendenti nella stessa cella, separate da virgola, senza graffa
+  // (es. "A = [[1,2],[3,4]], B = [[5,6],[7,8]]" — vedi SYNTAX.md).
+  bracketed?: boolean;
 }
 
 export interface PlaceholderNode extends NodeBase {

@@ -7,7 +7,7 @@ Estensione `.mathnb`.
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "b7e2...",
   "title": "Algebra lineare",
   "createdAt": "2026-08-21T10:00:00.000Z",
@@ -37,6 +37,11 @@ Estensione `.mathnb`.
 interface CellBase {
   id: string;          // uuid
   type: 'text' | 'math' | 'calculation' | 'graph';
+  // true = questa cella apre un nuovo gruppo visuale (bordo sinistro
+  // colorato, colore ciclico rispetto al gruppo precedente — vedi
+  // UI_SPEC.md "Raggruppamento celle"). Puramente di presentazione,
+  // opzionale e additivo: non ha richiesto un bump di schemaVersion.
+  groupStart?: boolean;
 }
 
 interface TextCell extends CellBase {
@@ -75,7 +80,7 @@ garantisce che riaprendo il file la struttura resti pienamente editabile
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "b7e2f6b0-1c2d-4e3a-9f0a-000000000001",
   "title": "Esercizi matrici",
   "createdAt": "2026-08-21T10:00:00.000Z",
@@ -93,21 +98,30 @@ garantisce che riaprendo il file la struttura resti pienamente editabile
       "ast": {
         "id": "n1",
         "type": "RelationNode",
-        "op": "=",
-        "left": { "id": "n2", "type": "IdentifierNode", "name": "A" },
-        "right": {
-          "id": "n3",
-          "type": "MatrixNode",
-          "rows": [
-            [ { "id": "n4", "type": "NumberNode", "value": "1" }, { "id": "n5", "type": "NumberNode", "value": "2" } ],
-            [ { "id": "n6", "type": "NumberNode", "value": "3" }, { "id": "n7", "type": "NumberNode", "value": "4" } ]
-          ]
-        }
+        "ops": ["="],
+        "terms": [
+          { "id": "n2", "type": "IdentifierNode", "name": "A" },
+          {
+            "id": "n3",
+            "type": "MatrixNode",
+            "rows": [
+              [ { "id": "n4", "type": "NumberNode", "value": "1" }, { "id": "n5", "type": "NumberNode", "value": "2" } ],
+              [ { "id": "n6", "type": "NumberNode", "value": "3" }, { "id": "n7", "type": "NumberNode", "value": "4" } ]
+            ]
+          }
+        ]
       }
     }
   ]
 }
 ```
+
+`RelationNode` usa `terms`/`ops` (non `left`/`right`/`op`) per poter
+rappresentare anche catene come "a = b = c" con un solo nodo — vedi
+SYNTAX.md, "Catene di relazioni". `SystemNode` ha in più un campo opzionale
+`bracketed` (assente o `true` = sistema da risolvere insieme, reso con la
+graffa; `false` = più affermazioni indipendenti nella stessa cella, senza
+graffa — vedi SYNTAX.md, "Affermazioni multiple nella stessa cella").
 
 ## Versioning dello schema
 
@@ -115,12 +129,25 @@ garantisce che riaprendo il file la struttura resti pienamente editabile
 - Ogni cambio non retro-compatibile della struttura (nuovo tipo di cella
   obbligatorio, rename di un campo, cambio di forma di un nodo AST) incrementa
   la versione e aggiunge una funzione di migrazione pura
-  `(doc: DocV_N) => DocV_{N+1}` in `web/src/notebook/migrations/`.
+  `(doc: DocV_N) => DocV_{N+1}` alla mappa `MIGRATIONS` in
+  `web/src/notebook/document-io.ts`.
 - Aggiunte puramente additive e opzionali (nuovo campo opzionale, nuovo tipo
   di nodo AST non ancora usato da vecchi file) **non** richiedono bump di
-  versione.
+  versione — es. `Cell.groupStart` (v2) o `SystemNode.bracketed` (v2) sono
+  arrivati così, senza bump.
 - Il file non viene mai riscritto silenziosamente a uno schema più vecchio:
   il salvataggio scrive sempre l'ultima versione supportata dall'app in uso.
+
+### Cronologia delle versioni
+
+- **v1** (Milestone 1): schema iniziale.
+- **v2** (Milestone 2, post-lancio): `RelationNode` è passata dalla forma
+  binaria `{op,left,right}` alla forma a catena `{terms[],ops[]}`, per
+  rappresentare "a = b = c" come un solo nodo invece di relazioni annidate
+  (vedi SYNTAX.md). Migrazione: cammina ricorsivamente l'intero albero AST
+  di ogni cella e converte ogni `RelationNode` in vecchia forma trovata,
+  ovunque sia annidata (`migrateRelationNodeShapeV1toV2` in
+  `document-io.ts`) — test in `document-io.test.ts`.
 
 ## Autosave
 

@@ -149,8 +149,8 @@ describe('parseMathInput — greco, relazioni, errori', () => {
   });
 
   it('a != b, x >= 3, x in R', () => {
-    expect(parseMathInput('a != b')).toMatchObject({ type: 'RelationNode', op: '!=' });
-    expect(parseMathInput('x >= 3')).toMatchObject({ type: 'RelationNode', op: '>=' });
+    expect(parseMathInput('a != b')).toMatchObject({ type: 'RelationNode', ops: ['!='] });
+    expect(parseMathInput('x >= 3')).toMatchObject({ type: 'RelationNode', ops: ['>='] });
     expect(parseMathInput('x in R')).toMatchObject({ type: 'SetNode', op: 'in' });
   });
 
@@ -179,20 +179,51 @@ describe('parseMathInput — algebra lineare (M2): insiemi numerici e segnature'
 
   it('T:R^2 -> R^3 produce una segnatura di funzione (RelationNode \':\' che contiene una RelationNode \'to\')', () => {
     const ast = parseMathInput('T:R^2 -> R^3');
-    expect(ast).toMatchObject({ type: 'RelationNode', op: ':', left: { name: 'T' } });
+    expect(ast).toMatchObject({ type: 'RelationNode', ops: [':'] });
     if (ast.type !== 'RelationNode') throw new Error('unreachable');
-    expect(ast.right).toMatchObject({ type: 'RelationNode', op: 'to' });
+    expect(ast.terms[0]).toMatchObject({ name: 'T' });
+    expect(ast.terms[1]).toMatchObject({ type: 'RelationNode', ops: ['to'] });
     expect(toLatex(ast)).toBe('T \\colon \\mathbb{R}^{2} \\to \\mathbb{R}^{3}');
   });
 
   it('"A v" (lettere singole separate da spazio) è un prodotto A*v, non un identificatore "Av"', () => {
     const ast = parseMathInput('A v = lambda v');
-    expect(ast).toMatchObject({ type: 'RelationNode', op: '=' });
+    expect(ast).toMatchObject({ type: 'RelationNode', ops: ['='] });
     if (ast.type !== 'RelationNode') throw new Error('unreachable');
-    expect(ast.left).toMatchObject({ type: 'BinaryOperationNode', op: '*', left: { name: 'A' }, right: { name: 'v' } });
+    expect(ast.terms[0]).toMatchObject({ type: 'BinaryOperationNode', op: '*', left: { name: 'A' }, right: { name: 'v' } });
   });
 
   it('R non è riservato quando è chiamato come funzione, es. R(x)', () => {
     expect(parseMathInput('R(x)')).toMatchObject({ type: 'FunctionNode', name: 'R' });
+  });
+});
+
+describe('parseMathInput — catene di relazioni e affermazioni multiple', () => {
+  it('"2+2 = 4 = 2*2" produce una sola RelationNode con 3 termini e 2 operatori', () => {
+    const ast = parseMathInput('2+2 = 4 = 2*2');
+    expect(ast.type).toBe('RelationNode');
+    if (ast.type !== 'RelationNode') throw new Error('unreachable');
+    expect(ast.terms).toHaveLength(3);
+    expect(ast.ops).toEqual(['=', '=']);
+    expect(toLatex(ast)).toBe('2 + 2 = 4 = 2 \\cdot 2');
+  });
+
+  it('"a < b < c" incatena disuguaglianze allo stesso modo', () => {
+    const ast = parseMathInput('a < b < c');
+    expect(ast).toMatchObject({ type: 'RelationNode', ops: ['<', '<'] });
+  });
+
+  it('"A = [[1,2],[3,4]], B = [[5,6],[7,8]]" produce un SystemNode non racchiuso in graffa', () => {
+    const ast = parseMathInput('A = [[1,2],[3,4]], B = [[5,6],[7,8]]');
+    expect(ast.type).toBe('SystemNode');
+    if (ast.type !== 'SystemNode') throw new Error('unreachable');
+    expect(ast.bracketed).toBe(false);
+    expect(ast.equations).toHaveLength(2);
+    expect(toLatex(ast)).not.toContain('cases');
+    expect(toLatex(ast)).toContain(', B =');
+  });
+
+  it('||v|| equivale a norm(v)', () => {
+    expect(toLatex(parseMathInput('||v||'))).toBe(toLatex(parseMathInput('norm(v)')));
   });
 });

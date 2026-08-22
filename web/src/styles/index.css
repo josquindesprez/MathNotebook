@@ -14,6 +14,17 @@
   --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+
+  /* Colori di gruppo per il bordo sinistro delle celle (vedi
+     model.ts/computeGroupColorIndices, UI_SPEC.md "Raggruppamento
+     celle"). Volutamente distinti dall'indaco di --accent, usato per la
+     selezione/editing, per non creare ambiguità visiva. */
+  --group-color-0: #ef4444;
+  --group-color-1: #f59e0b;
+  --group-color-2: #10b981;
+  --group-color-3: #3b82f6;
+  --group-color-4: #14b8a6;
+  --group-color-5: #ec4899;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +40,13 @@
     --accent-soft: #26264a;
     --danger: #f87171;
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+    --group-color-0: #f87171;
+    --group-color-1: #fbbf24;
+    --group-color-2: #34d399;
+    --group-color-3: #60a5fa;
+    --group-color-4: #2dd4bf;
+    --group-color-5: #f472b6;
   }
 }
 
@@ -133,8 +151,9 @@ button:disabled {
   align-items: flex-start;
   gap: 8px;
   border: 1px solid transparent;
+  border-left: 3px solid transparent;
   border-radius: 8px;
-  padding: 6px 8px;
+  padding: 6px 8px 6px 6px;
 }
 
 .cell-shell.is-selected {
@@ -146,6 +165,17 @@ button:disabled {
   border-color: var(--accent);
   background: var(--bg-elevated);
 }
+
+/* Raggruppamento celle per colore del bordo sinistro (vedi
+   model.ts/computeGroupColorIndices, UI_SPEC.md). Il colore del bordo di
+   selezione/editing (sopra) resta sul riquadro intero; questo è solo lo
+   spigolo sinistro, così i due non si confondono. */
+.cell-shell[data-group-color='0'] { border-left-color: var(--group-color-0); }
+.cell-shell[data-group-color='1'] { border-left-color: var(--group-color-1); }
+.cell-shell[data-group-color='2'] { border-left-color: var(--group-color-2); }
+.cell-shell[data-group-color='3'] { border-left-color: var(--group-color-3); }
+.cell-shell[data-group-color='4'] { border-left-color: var(--group-color-4); }
+.cell-shell[data-group-color='5'] { border-left-color: var(--group-color-5); }
 
 .cell-gutter {
   display: flex;

@@ -97,8 +97,13 @@ export function toPlainText(node: MathNode): string {
     case 'LimitNode':
       return `lim_(${toPlainText(node.variable)}→${toPlainText(node.approaches)}) ${toPlainText(node.expression)}`;
 
-    case 'RelationNode':
-      return `${toPlainText(node.left)} ${RELATION_SYMBOL[node.op] ?? node.op} ${toPlainText(node.right)}`;
+    case 'RelationNode': {
+      const parts = [toPlainText(node.terms[0])];
+      for (let i = 0; i < node.ops.length; i += 1) {
+        parts.push(RELATION_SYMBOL[node.ops[i]] ?? node.ops[i], toPlainText(node.terms[i + 1]));
+      }
+      return parts.join(' ');
+    }
 
     case 'SetNode': {
       const op = SET_OP_SYMBOL[node.op] ?? node.op;
@@ -109,7 +114,7 @@ export function toPlainText(node: MathNode): string {
       return node.cases.map((c) => `${toPlainText(c.expression)} se ${toPlainText(c.condition)}`).join('; ');
 
     case 'SystemNode':
-      return node.equations.map(toPlainText).join('; ');
+      return node.equations.map(toPlainText).join(node.bracketed === false ? ', ' : '; ');
 
     case 'PlaceholderNode':
       return '▢';

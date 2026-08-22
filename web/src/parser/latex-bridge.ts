@@ -7,9 +7,10 @@
 // \sqrt, \begin{pmatrix}, \cdot, macro di relazione, \placeholder{}).
 // Non è un parser LaTeX generale.
 
-import type { MathNode, RelationOp, SetOp } from '../ast/types';
+import type { MathNode, RelationNode, RelationOp, SetOp } from '../ast/types';
 import {
   binary,
+  extendRelationChain,
   fraction,
   func,
   group,
@@ -271,10 +272,26 @@ class LatexParser {
     }
   }
 
+  // Più affermazioni indipendenti separate da virgola (vedi
+  // parser.ts/parseDocument e SYNTAX.md): stesso trattamento di riga
+  // libera, per coerenza tra sintassi rapida e round-trip da MathLive.
   parseDocument(): MathNode {
     this.skipIgnored();
     if (this.check('EOF')) return placeholder();
-    return this.parseTypeAnnotation();
+    const first = this.parseTypeAnnotation();
+    this.skipIgnored();
+    if (this.check('EOF')) return first;
+
+    if (this.check('COMMA')) {
+      const statements = [first];
+      while (this.match('COMMA')) {
+        this.skipIgnored();
+        statements.push(this.parseTypeAnnotation());
+        this.skipIgnored();
+      }
+      return { id: `sys${Date.now().toString(36)}`, type: 'SystemNode', equations: statements, bracketed: false };
+    }
+    return first;
   }
 
   // ---- Segnatura di funzione: "T\colon\mathbb{R}^2 \to \mathbb{R}^3" ----
@@ -302,28 +319,33 @@ class LatexParser {
     return left;
   }
 
+  // "a = b = c" resta una sola RelationNode con più termini (vedi
+  // parser.ts/parseRelational e ast/types.ts).
   private parseRelational(): MathNode {
-    const left = this.parseAdditive();
-    this.skipIgnored();
+    const first = this.parseAdditive();
+    let chain: RelationNode | undefined;
+
+    for (;;) {
+      this.skipIgnored();
+      const tok = this.peek();
+      let relOp: RelationOp | null = null;
+      if (tok.type === 'EQ') relOp = '=';
+      else if (tok.type === 'LT' || tok.type === 'GT') relOp = tok.text as RelationOp;
+      else if (tok.type === 'COMMAND' && RELATION_COMMANDS[tok.text]) relOp = RELATION_COMMANDS[tok.text];
+      if (!relOp) break;
+      this.advance();
+      const next = this.parseAdditive();
+      chain = chain ? extendRelationChain(chain, relOp, next) : relation(relOp, first, next);
+    }
+    if (chain) return chain;
+
     const tok = this.peek();
-    if (tok.type === 'EQ') {
-      this.advance();
-      return relation('=', left, this.parseAdditive());
-    }
-    if (tok.type === 'LT' || tok.type === 'GT') {
-      this.advance();
-      return relation(tok.text as RelationOp, left, this.parseAdditive());
-    }
-    if (tok.type === 'COMMAND' && RELATION_COMMANDS[tok.text]) {
-      this.advance();
-      return relation(RELATION_COMMANDS[tok.text], left, this.parseAdditive());
-    }
     if (tok.type === 'COMMAND' && SET_COMMANDS[tok.text]) {
       this.advance();
       const right = this.parseAdditive();
-      return { id: `s${Date.now().toString(36)}`, type: 'SetNode', op: SET_COMMANDS[tok.text], operands: [left, right] };
+      return { id: `s${Date.now().toString(36)}`, type: 'SetNode', op: SET_COMMANDS[tok.text], operands: [first, right] };
     }
-    return left;
+    return first;
   }
 
   private parseAdditive(): MathNode {

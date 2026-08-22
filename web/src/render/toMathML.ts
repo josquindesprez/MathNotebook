@@ -95,18 +95,27 @@ export function toMathML(node: MathNode): string {
       return mrow(`<munder><mo>lim</mo>${under}</munder>${toMathML(node.expression)}`);
     }
 
-    case 'RelationNode':
-      return mrow(`${toMathML(node.left)}${mo(RELATION_SYMBOL[node.op] ?? node.op)}${toMathML(node.right)}`);
+    case 'RelationNode': {
+      let out = toMathML(node.terms[0]);
+      for (let i = 0; i < node.ops.length; i += 1) {
+        out += mo(RELATION_SYMBOL[node.ops[i]] ?? node.ops[i]) + toMathML(node.terms[i + 1]);
+      }
+      return mrow(out);
+    }
 
     case 'SetNode': {
       const symbol = SET_OP_SYMBOL[node.op] ?? node.op;
       return mrow(node.operands.map(toMathML).join(mo(symbol)));
     }
 
-    case 'PiecewiseNode':
+    case 'PiecewiseNode': {
+      const rows = node.cases.map((c) => `<mtr><mtd>${toMathML(c.expression)}</mtd></mtr>`);
+      return `<mrow>${mo('{')}<mtable>${rows.join('')}</mtable></mrow>`;
+    }
+
     case 'SystemNode': {
-      const equations = node.type === 'PiecewiseNode' ? node.cases.map((c) => c.expression) : node.equations;
-      const rows = equations.map((eq) => `<mtr><mtd>${toMathML(eq)}</mtd></mtr>`);
+      if (node.bracketed === false) return mrow(node.equations.map(toMathML).join(mo(',')));
+      const rows = node.equations.map((eq) => `<mtr><mtd>${toMathML(eq)}</mtd></mtr>`);
       return `<mrow>${mo('{')}<mtable>${rows.join('')}</mtable></mrow>`;
     }
 
