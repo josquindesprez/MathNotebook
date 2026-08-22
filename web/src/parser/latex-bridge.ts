@@ -236,18 +236,25 @@ const IGNORED_COMMANDS = new Set(['left', 'right', ',', '!', ';', 'quad', 'qquad
 class LatexParser {
   private tokens: LToken[];
   private pos = 0;
+  private limitStack: number[] = [];
 
   constructor(input: string) {
     this.tokens = tokenizeLatex(input);
   }
 
+  private get limit(): number {
+    return this.limitStack.length > 0 ? this.limitStack[this.limitStack.length - 1] : this.tokens.length;
+  }
+
   private peek(offset = 0): LToken {
-    return this.tokens[Math.min(this.pos + offset, this.tokens.length - 1)];
+    const idx = Math.min(this.pos + offset, this.limit);
+    if (idx >= this.limit) return { type: 'EOF', text: '' };
+    return this.tokens[Math.min(idx, this.tokens.length - 1)];
   }
 
   private advance(): LToken {
     const tok = this.peek();
-    if (this.pos < this.tokens.length - 1) this.pos += 1;
+    this.pos = Math.min(this.pos + 1, this.limit);
     return tok;
   }
 
@@ -263,6 +270,37 @@ class LatexParser {
     const tok = this.match(type);
     if (!tok) throw new SyntaxError(`${message} (trovato "${this.peek().text || 'EOF'}")`);
     return tok;
+  }
+
+  /** Esegue fn con il parsing limitato a non superare l'indice newLimit —
+   * usato per delimitare con precisione il contenuto di "|...|"/"\|...\|"
+   * (vedi parsePipeBounded), sullo stesso principio di parser.ts/withLimit. */
+  private withLimit<T>(newLimit: number, fn: () => T): T {
+    this.limitStack.push(newLimit);
+    try {
+      return fn();
+    } finally {
+      this.limitStack.pop();
+    }
+  }
+
+  /** Trova, a partire dalla posizione corrente, l'indice del prossimo token
+   * di chiusura "|"/"\|" (a profondità 0 di parentesi/graffe/staffe), per
+   * delimitare correttamente il contenuto di valore assoluto/norma senza
+   * che la propria chiusura venga scambiata per una nuova apertura (vedi
+   * parsePrimary/PIPE e parseCommand "|"). */
+  private findMatchingPipeClose(openType: 'PIPE' | 'COMMAND_PIPE'): number | null {
+    let depth = 0;
+    for (let idx = this.pos; idx < this.limit; idx += 1) {
+      const tok = this.tokens[idx];
+      if (tok.type === 'LPAREN' || tok.type === 'LBRACE' || tok.type === 'LBRACKET') depth += 1;
+      else if (tok.type === 'RPAREN' || tok.type === 'RBRACE' || tok.type === 'RBRACKET') depth -= 1;
+      else if (depth === 0) {
+        if (openType === 'PIPE' && tok.type === 'PIPE') return idx;
+        if (openType === 'COMMAND_PIPE' && tok.type === 'COMMAND' && tok.text === '|') return idx;
+      }
+    }
+    return null;
   }
 
   /** Salta comandi ignorati (\left, \right, \,, ...) di fila. */
@@ -389,19 +427,20 @@ class LatexParser {
 
   private canStartImplicitFactor(): boolean {
     const tok = this.peek();
-    // NB: PIPE non è incluso qui deliberatamente. "|" apre e chiude il
-    // valore assoluto con lo stesso token: se venisse trattato come inizio
-    // di un fattore implicito, il "|" di chiusura verrebbe scambiato per
-    // l'apertura di un nuovo valore assoluto (vedi parsePrimary/PIPE).
-    if (tok.type === 'NUMBER' || tok.type === 'LETTER' || tok.type === 'LPAREN' || tok.type === 'LBRACE') return true;
+    // PIPE/"\|" (valore assoluto/norma) SONO inclusi come inizio di un
+    // fattore implicito: grazie a findMatchingPipeClose (vedi sopra) ogni
+    // "|...|"/"\|...\|" è delimitato esplicitamente al proprio contenuto,
+    // quindi due espressioni adiacenti ("|a||b|", "\|a\|\|b\|") si
+    // moltiplicano implicitamente senza che la chiusura dell'una venga
+    // scambiata per l'apertura dell'altra.
+    if (tok.type === 'NUMBER' || tok.type === 'LETTER' || tok.type === 'LPAREN' || tok.type === 'LBRACE' || tok.type === 'PIPE') return true;
     if (
       tok.type === 'COMMAND' &&
       !IGNORED_COMMANDS.has(tok.text) &&
       !RELATION_COMMANDS[tok.text] &&
       !SET_COMMANDS[tok.text] &&
       tok.text !== 'to' &&
-      tok.text !== 'colon' &&
-      tok.text !== '|' // "\|" (norma): stesso motivo del PIPE nudo, vedi sopra
+      tok.text !== 'colon'
     ) {
       return tok.text !== 'end' && tok.text !== 'right';
     }
@@ -478,6 +517,12 @@ class LatexParser {
 
     if (tok.type === 'LETTER') {
       this.advance();
+      // "d(a,b)", "f(x,y)": una lettera seguita da parentesi è una chiamata
+      // di funzione generica, non moltiplicazione implicita — stessa
+      // convenzione, per coerenza, della sintassi rapida (parser.ts).
+      if (this.check('LPAREN')) {
+        return func(tok.text, this.parseParenArgs());
+      }
       return ident(tok.text);
     }
 
@@ -497,10 +542,14 @@ class LatexParser {
     }
 
     // "|x|" (valore assoluto). "\left"/"\right" davanti a "|" sono già
-    // stati scartati da skipIgnored().
+    // stati scartati da skipIgnored(). Delimitiamo esplicitamente il
+    // contenuto fino al "|" di chiusura corrispondente (findMatchingPipeClose)
+    // così due valori assoluti adiacenti ("|a||b|") non fanno sì che la
+    // chiusura del primo venga scambiata per l'apertura del secondo.
     if (tok.type === 'PIPE') {
       this.advance();
-      const inner = this.parseAdditive();
+      const closeIdx = this.findMatchingPipeClose('PIPE');
+      const inner = closeIdx !== null ? this.withLimit(closeIdx, () => this.parseAdditive()) : this.parseAdditive();
       this.skipIgnored();
       this.expect('PIPE', 'Attesa "|" di chiusura per il valore assoluto');
       return func('abs', [inner]);
@@ -530,9 +579,17 @@ class LatexParser {
     }
 
     if (name === 'mathbb') {
-      this.expect('LBRACE', 'Attesa "{" dopo \\mathbb');
-      const letter = this.advance().text;
-      this.expect('RBRACE', 'Attesa "}"');
+      // LaTeX vero accetta sia "\mathbb{R}" sia, per un argomento di un
+      // solo token, "\mathbb R" senza graffe (comune nei fogli generati
+      // da GPT): supportiamo entrambe le forme.
+      let letter: string;
+      if (this.check('LBRACE')) {
+        this.advance();
+        letter = this.advance().text;
+        this.expect('RBRACE', 'Attesa "}"');
+      } else {
+        letter = this.advance().text;
+      }
       const map: Record<string, string> = { R: 'ℝ', N: 'ℕ', Z: 'ℤ', Q: 'ℚ', C: 'ℂ' };
       return sym(map[letter] ?? letter, 'set');
     }
@@ -549,8 +606,11 @@ class LatexParser {
 
     // "\|v\|" (norma). Il tokenizzatore emette COMMAND con testo "|" sia
     // per "\|" sia (per costruzione) qui sotto per il "\|" di chiusura.
+    // Stessa delimitazione esplicita di cui sopra, per lo stesso motivo:
+    // due norme adiacenti ("\|a\|\|b\|") non devono confondersi a vicenda.
     if (name === '|') {
-      const inner = this.parseAdditive();
+      const closeIdx = this.findMatchingPipeClose('COMMAND_PIPE');
+      const inner = closeIdx !== null ? this.withLimit(closeIdx, () => this.parseAdditive()) : this.parseAdditive();
       this.skipIgnored();
       if (this.check('COMMAND') && this.peek().text === '|') {
         this.advance();

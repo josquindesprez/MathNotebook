@@ -89,6 +89,6 @@ C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\refint\MathNotebook.d
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.pdb
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.App.genruntimeconfig.cache
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\ref\MathNotebook.dll
-C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-XfzQVCsM.css
 C:\Users\josqu\MathNotebook\app\obj\Release\net9.0-windows\MathNotebook.App.sourcelink.json
-C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-S8Lxrg5M.js
+C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-OSbOR3Y8.js
+C:\Users\josqu\MathNotebook\app\bin\Release\net9.0-windows\web\assets\index-YCLAqDxp.css

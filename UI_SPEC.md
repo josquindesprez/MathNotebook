@@ -85,6 +85,21 @@ DOCUMENT_FORMAT.md).
   di MathLive (che avvolgerebbe il LaTeX copiato in `$$...$$`, causando
   `$$$...$$$` se incollato tra `$...$` già presenti — non renderizzabile).
 
+### Import text
+
+Pulsante in toolbar ("Import text…"): apre un popup con una textarea dove
+incollare un foglio di testo/LaTeX intero (tipicamente generato da GPT — è
+il modo consigliato per caricare esercizi/formule, vedi
+`notebook/importText.ts`). All'`Import` il testo viene spezzato in celle e
+aggiunto in fondo al notebook corrente (mai distruttivo):
+- righe separate da una riga vuota → un'unica Text Cell per paragrafo (il
+  markdown/math inline `$...$` resta invariato);
+- una riga che è **solo** LaTeX (contiene un comando `\...`, oppure non ha
+  spazi ed è fatta di soli caratteri matematici) diventa una Math Cell a sé.
+
+Euristica volutamente semplice, non perfetta: ogni cella puó comunque
+essere corretta di tipo dal suo menu "..." se la classificazione sbaglia.
+
 ### Math Cell
 
 - Il contenuto è un singolo `<math-field>` MathLive a piena larghezza della

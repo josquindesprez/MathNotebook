@@ -48,6 +48,7 @@ interface NotebookState {
   moveCell: (id: string, direction: 'up' | 'down') => void;
   changeCellType: (id: string, type: Cell['type']) => void;
   toggleGroupStart: (id: string) => void;
+  importCells: (cells: Cell[]) => void;
 
   undo: () => void;
   redo: () => void;
@@ -177,6 +178,21 @@ export const useNotebookStore = create<NotebookState>((set, get) => ({
     const { doc, past } = get();
     const cells = doc.cells.map((c) => (c.id === id ? { ...c, groupStart: !c.groupStart } : c));
     set({ doc: { ...doc, cells }, past: [...past, snapshot(doc.cells)].slice(-HISTORY_LIMIT), future: [], saveState: 'unsaved' });
+  },
+
+  // Aggiunge in coda le celle prodotte da parseWorksheetText (vedi
+  // importText.ts) — mai distruttivo: si accoda al notebook corrente.
+  importCells: (newCells) => {
+    if (newCells.length === 0) return;
+    const { doc, past } = get();
+    const cells = [...doc.cells, ...newCells];
+    set({
+      doc: { ...doc, cells },
+      past: [...past, snapshot(doc.cells)].slice(-HISTORY_LIMIT),
+      future: [],
+      saveState: 'unsaved',
+      selectedCellId: newCells[newCells.length - 1].id,
+    });
   },
 
   undo: () => {

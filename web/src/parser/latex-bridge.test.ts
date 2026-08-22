@@ -74,4 +74,24 @@ describe('latexToAst — round-trip di base', () => {
     if (roundTripped.type !== 'SystemNode') throw new Error('unreachable');
     expect(roundTripped.equations).toHaveLength(2);
   });
+
+  // I tre test seguenti vengono da un foglio di formule reale generato da
+  // GPT (vedi conversazione): non si aprivano affatto prima di questi fix.
+  it('"\\mathbb R" senza graffe (argomento a un token) equivale a "\\mathbb{R}"', () => {
+    expect(latexToAst('\\mathbb R')).toMatchObject({ type: 'SymbolNode', symbol: 'ℝ' });
+    expect(latexToAst('A\\in\\mathbb R^{m\\times n}')).toMatchObject({ type: 'SetNode', op: 'in' });
+  });
+
+  it('due norme/valori assoluti adiacenti si moltiplicano implicitamente invece di confondersi a vicenda', () => {
+    const ast = latexToAst('\\|\\mathbf a\\|\\|\\mathbf b\\|');
+    expect(ast).toMatchObject({ type: 'BinaryOperationNode', op: '*' });
+    if (ast.type !== 'BinaryOperationNode') throw new Error('unreachable');
+    expect(ast.left).toMatchObject({ type: 'FunctionNode', name: 'norm' });
+    expect(ast.right).toMatchObject({ type: 'FunctionNode', name: 'norm' });
+  });
+
+  it('una lettera seguita da parentesi è una chiamata di funzione generica, es. "d(a,b)"', () => {
+    const ast = latexToAst('d(a,b)');
+    expect(ast).toMatchObject({ type: 'FunctionNode', name: 'd', args: [{ name: 'a' }, { name: 'b' }] });
+  });
 });

@@ -1,0 +1,25 @@
+\mathbf a+\mathbf b=\begin{pmatrix}a_1+b_1\\a_2+b_2\end{pmatrix}
+c\mathbf v=\begin{pmatrix}cv_1\\cv_2\end{pmatrix}
+\|\mathbf v\|=\sqrt{v_1^2+v_2^2}
+d(\mathbf a,\mathbf b)=\|\mathbf b-\mathbf a\|
+d(\mathbf a,\mathbf b)=\sqrt{(a_1-b_1)^2+(a_2-b_2)^2}
+\mathbf a\cdot\mathbf b=a_1b_1+a_2b_2
+\mathbf a\cdot\mathbf b=0\Rightarrow\mathbf a\perp\mathbf b
+\mathbf a\cdot\mathbf b=\|\mathbf a\|\|\mathbf b\|\cos\theta
+\cos\theta=\frac{\mathbf a\cdot\mathbf b}{\|\mathbf a\|\|\mathbf b\|}
+\theta=\arccos\left(\frac{\mathbf a\cdot\mathbf b}{\|\mathbf a\|\|\mathbf b\|}\right)
+A\in\mathbb R^{m\times n}
+(m\times n)(n\times p)\rightarrow(m\times p)
+(A+B)_{ij}=A_{ij}+B_{ij}
+(cA)_{ij}=cA_{ij}
+(AB)_{ij}=\sum_k A_{ik}B_{kj}
+A\mathbf v=\begin{pmatrix}\text{riga}_1(A)\cdot\mathbf v\\\text{riga}_2(A)\cdot\mathbf v\\\vdots\end{pmatrix}
+\mathbf e_1=\begin{pmatrix}1\\0\end{pmatrix}
+\mathbf e_2=\begin{pmatrix}0\\1\end{pmatrix}
+A\mathbf e_1=\text{prima colonna di }A
+A\mathbf e_2=\text{seconda colonna di }A
+A(\mathbf u+\mathbf v)=A\mathbf u+A\mathbf v
+A(c\mathbf v)=cA\mathbf v
+\begin{pmatrix}2&0\\0&1\end{pmatrix}\begin{pmatrix}x\\y\end{pmatrix}=\begin{pmatrix}2x\\y\end{pmatrix}
+\begin{pmatrix}-1&0\\0&1\end{pmatrix}\begin{pmatrix}x\\y\end{pmatrix}=\begin{pmatrix}-x\\y\end{pmatrix}
+\begin{pmatrix}0&-1\\1&0\end{pmatrix}\begin{pmatrix}x\\y\end{pmatrix}=\begin{pmatrix}-y\\x\end{pmatrix}

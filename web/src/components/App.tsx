@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNotebookStore } from '../notebook/store';
 import { createEmptyNotebook } from '../notebook/model';
 import { deserializeNotebook, serializeNotebook } from '../notebook/document-io';
+import { parseWorksheetText } from '../notebook/importText';
 import { openFile, saveFile, saveFileAs, setWindowTitle, copyToClipboard } from '../bridge/hostBridge';
 import { getMathField } from '../notebook/mathFieldRegistry';
 import { toLatex } from '../render/toLatex';
@@ -9,6 +10,7 @@ import { usePaletteUiStore, ALT_SHORTCUT_CATEGORIES } from '../palette/uiStore';
 import { NotebookView } from './NotebookView';
 import { PaletteSidebar } from './palette/PaletteSidebar';
 import { StatusBar } from './StatusBar';
+import { ImportTextDialog } from './ImportTextDialog';
 
 export function App() {
   const doc = useNotebookStore((s) => s.doc);
@@ -22,7 +24,19 @@ export function App() {
   const togglePaletteCollapsed = usePaletteUiStore((s) => s.toggleCollapsed);
   const expandPaletteCategory = usePaletteUiStore((s) => s.expandCategory);
 
+  const importCells = useNotebookStore((s) => s.importCells);
+
   const [focusMode, setFocusMode] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const handleImportText = useCallback(
+    (text: string) => {
+      const cells = parseWorksheetText(text);
+      importCells(cells);
+      setImportOpen(false);
+    },
+    [importCells]
+  );
 
   useEffect(() => {
     setWindowTitle(`${doc.title}${saveState === 'unsaved' ? ' •' : ''} — Math Notebook`);
@@ -44,8 +58,18 @@ export function App() {
   const handleOpen = useCallback(async () => {
     const result = await openFile();
     if (result.canceled || !result.contents) return;
-    const loaded = deserializeNotebook(result.contents);
-    loadDocument(loaded, result.path ?? null);
+    try {
+      const loaded = deserializeNotebook(result.contents);
+      loadDocument(loaded, result.path ?? null);
+    } catch (err) {
+      // Prima d'ora un file non valido (es. un .txt scambiato per .mathnb)
+      // falliva qui senza alcun avviso: sembrava che "non succedesse
+      // niente". Vedi conversazione: due fogli di testo di GPT non si
+      // aprivano per questo.
+      window.alert(
+        `Impossibile aprire il file: non è un notebook Math Notebook valido (.mathnb).\n\n${err instanceof Error ? err.message : String(err)}`
+      );
+    }
   }, [loadDocument]);
 
   const handleNew = useCallback(() => {
@@ -120,6 +144,7 @@ export function App() {
             <button onClick={handleOpen}>Open</button>
             <button onClick={() => void handleSave(false)}>Save</button>
             <button onClick={() => void handleSave(true)}>Save As</button>
+            <button onClick={() => setImportOpen(true)}>Import text…</button>
             <button onClick={undo}>Undo</button>
             <button onClick={redo}>Redo</button>
           </div>
@@ -132,6 +157,7 @@ export function App() {
         {!focusMode && <PaletteSidebar />}
       </div>
       {!focusMode && <StatusBar />}
+      {importOpen && <ImportTextDialog onImport={handleImportText} onCancel={() => setImportOpen(false)} />}
     </div>
   );
 }
