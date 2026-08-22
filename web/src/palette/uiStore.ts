@@ -12,8 +12,16 @@ interface PaletteUiState {
   expandCategory: (category: PaletteCategoryName | '') => void;
 }
 
+// Sotto i 768px (vedi index.css) la palette diventa un pannello a comparsa
+// a piena larghezza: se partisse aperta come su desktop coprirebbe subito
+// tutto il notebook su un telefono. Parte quindi collassata su schermi
+// stretti, aperta altrove — coerente in entrambi i contesti senza
+// hardcodare la piattaforma (funziona anche solo ridimensionando la
+// finestra su desktop).
+const startsCollapsed = typeof window !== 'undefined' && window.innerWidth <= 768;
+
 export const usePaletteUiStore = create<PaletteUiState>((set) => ({
-  collapsed: false,
+  collapsed: startsCollapsed,
   expandedCategory: 'Basic',
   toggleCollapsed: () => set((s) => ({ collapsed: !s.collapsed })),
   expandCategory: (category) => set({ expandedCategory: category, collapsed: false }),

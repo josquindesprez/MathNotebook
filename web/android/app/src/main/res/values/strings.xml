@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Math Notebook</string>
+    <string name="title_activity_main">Math Notebook</string>
+    <string name="package_name">com.mathnotebook.app</string>
+    <string name="custom_url_scheme">com.mathnotebook.app</string>
+</resources>

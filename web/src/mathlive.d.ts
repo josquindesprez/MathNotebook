@@ -8,7 +8,12 @@ declare global {
   namespace JSX {
     interface IntrinsicElements {
       'math-field': DetailedHTMLProps<HTMLAttributes<MathfieldElement>, MathfieldElement> & {
-        'virtual-keyboard-mode'?: 'auto' | 'manual' | 'off';
+        // "virtual-keyboard-mode" (usato qui fino a M4) non è un attributo
+        // reale di MathLive — non ha mai avuto alcun effetto. L'attributo
+        // vero è questo, e il suo default ("auto": tastiera virtuale solo
+        // su device touch) è già il comportamento che vogliamo sia su
+        // desktop (WPF) sia su mobile (Capacitor): non serve impostarlo.
+        'math-virtual-keyboard-policy'?: 'auto' | 'manual' | 'sandboxed';
         'read-only'?: boolean;
       };
     }

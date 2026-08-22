@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MathNotebook")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+eb6b692ae84688536974b101134d486165638010")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e55c6d386ed39960ddffac7045faebab67b41dc6")]
 [assembly: System.Reflection.AssemblyProductAttribute("MathNotebook")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MathNotebook")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

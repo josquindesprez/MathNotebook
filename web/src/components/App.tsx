@@ -3,7 +3,15 @@ import { useNotebookStore } from '../notebook/store';
 import { createEmptyNotebook } from '../notebook/model';
 import { deserializeNotebook, serializeNotebook } from '../notebook/document-io';
 import { parseWorksheetText } from '../notebook/importText';
-import { openFile, saveFile, saveFileAs, setWindowTitle, copyToClipboard } from '../bridge/hostBridge';
+
+/** Nome del file senza percorso ed estensione, usato come titolo quando si
+ * apre un foglio di testo/LaTeX (non un .mathnb, che ha già un suo titolo). */
+function titleFromPath(path: string | null): string {
+  if (!path) return 'Nuovo notebook';
+  const base = path.replace(/\\/g, '/').split('/').pop() ?? path;
+  return base.replace(/\.[^./]+$/, '') || base;
+}
+import { openFile, saveFile, saveFileAs, setWindowTitle, copyToClipboard, isCapacitorNative } from '../bridge/hostBridge';
 import { getMathField } from '../notebook/mathFieldRegistry';
 import { toLatex } from '../render/toLatex';
 import { usePaletteUiStore, ALT_SHORTCUT_CATEGORIES } from '../palette/uiStore';
@@ -11,6 +19,7 @@ import { NotebookView } from './NotebookView';
 import { PaletteSidebar } from './palette/PaletteSidebar';
 import { StatusBar } from './StatusBar';
 import { ImportTextDialog } from './ImportTextDialog';
+import { OpenFileListDialog } from './OpenFileListDialog';
 
 export function App() {
   const doc = useNotebookStore((s) => s.doc);
@@ -28,6 +37,7 @@ export function App() {
 
   const [focusMode, setFocusMode] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [openListOpen, setOpenListOpen] = useState(false);
 
   const handleImportText = useCallback(
     (text: string) => {
@@ -55,22 +65,52 @@ export function App() {
     [doc, filePath, markSaved]
   );
 
+  const openFromContents = useCallback(
+    (path: string | null, contents: string) => {
+      try {
+        const loaded = deserializeNotebook(contents);
+        loadDocument(loaded, path);
+        return;
+      } catch (mathnbErr) {
+        // Non è un .mathnb valido: prova a interpretarlo come foglio di
+        // testo/LaTeX (lo stesso formato di "Import text...", vedi
+        // importText.ts) così un .txt già pronto (es. da GPT) si apre
+        // direttamente con "Open", senza dover incollare a mano nella
+        // textarea di Import. Sostituisce il notebook corrente (come ogni
+        // Open), non lo aggiunge in coda come fa Import.
+        const cells = parseWorksheetText(contents);
+        if (cells.length === 0) {
+          window.alert(
+            `Impossibile aprire il file: non è un notebook Math Notebook valido (.mathnb) né un testo riconoscibile.\n\n${mathnbErr instanceof Error ? mathnbErr.message : String(mathnbErr)}`
+          );
+          return;
+        }
+        loadDocument({ ...createEmptyNotebook(titleFromPath(path)), cells }, null);
+      }
+    },
+    [loadDocument]
+  );
+
   const handleOpen = useCallback(async () => {
+    // Su Capacitor non c'è un dialogo di sistema: mostriamo l'elenco dei
+    // notebook salvati nella cartella Documenti dell'app (vedi
+    // OpenFileListDialog.tsx e ARCHITECTURE.md "Mobile").
+    if (isCapacitorNative()) {
+      setOpenListOpen(true);
+      return;
+    }
     const result = await openFile();
     if (result.canceled || !result.contents) return;
-    try {
-      const loaded = deserializeNotebook(result.contents);
-      loadDocument(loaded, result.path ?? null);
-    } catch (err) {
-      // Prima d'ora un file non valido (es. un .txt scambiato per .mathnb)
-      // falliva qui senza alcun avviso: sembrava che "non succedesse
-      // niente". Vedi conversazione: due fogli di testo di GPT non si
-      // aprivano per questo.
-      window.alert(
-        `Impossibile aprire il file: non è un notebook Math Notebook valido (.mathnb).\n\n${err instanceof Error ? err.message : String(err)}`
-      );
-    }
-  }, [loadDocument]);
+    openFromContents(result.path ?? null, result.contents);
+  }, [openFromContents]);
+
+  const handleOpenFromList = useCallback(
+    (name: string, contents: string) => {
+      setOpenListOpen(false);
+      openFromContents(name, contents);
+    },
+    [openFromContents]
+  );
 
   const handleNew = useCallback(() => {
     loadDocument(createEmptyNotebook(), null);
@@ -157,7 +197,15 @@ export function App() {
         {!focusMode && <PaletteSidebar />}
       </div>
       {!focusMode && <StatusBar />}
+      {/* Visibile solo sotto i 768px (vedi index.css): su desktop la
+          palette è sempre affiancata, non serve un pulsante per aprirla. */}
+      {!focusMode && (
+        <button type="button" className="palette-fab" onClick={togglePaletteCollapsed} aria-label="Mostra/nascondi Math Palette">
+          Σ
+        </button>
+      )}
       {importOpen && <ImportTextDialog onImport={handleImportText} onCancel={() => setImportOpen(false)} />}
+      {openListOpen && <OpenFileListDialog onOpen={handleOpenFromList} onCancel={() => setOpenListOpen(false)} />}
     </div>
   );
 }

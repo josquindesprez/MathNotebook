@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@capacitor/filesystem": "^7.1.8",
     "katex": "^0.16.11",
     "mathlive": "^0.101.2",
     "react": "^18.3.1",
@@ -18,6 +19,9 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.6.8",
+    "@capacitor/cli": "^7.6.8",
+    "@capacitor/core": "^7.6.8",
     "@types/katex": "^0.16.7",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

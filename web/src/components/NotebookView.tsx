@@ -1,6 +1,7 @@
 import { useCallback, useMemo, type KeyboardEvent } from 'react';
 import { useNotebookStore } from '../notebook/store';
 import { computeGroupColorIndices } from '../notebook/model';
+import { useIsMobileLayout } from '../hooks/useIsMobileLayout';
 import { CellShell } from './CellShell';
 import { TextCell } from './cells/TextCell';
 import { MathCell } from './cells/MathCell';
@@ -140,12 +141,14 @@ export function NotebookView() {
   );
 
   const groupColors = useMemo(() => computeGroupColorIndices(doc.cells), [doc.cells]);
+  const isMobileLayout = useIsMobileLayout();
 
   return (
     <div className="notebook-view" onKeyDown={handleKeyDown}>
       {doc.cells.map((cell, index) => {
         const isSelected = cell.id === selectedCellId;
         const isEditing = cell.id === editingCellId;
+        const isMobileZoomed = isEditing && isMobileLayout;
         return (
           <CellShell
             key={cell.id}
@@ -155,12 +158,19 @@ export function NotebookView() {
             onSelect={() => selectCell(cell.id)}
             groupColorIndex={groupColors[index]}
             canToggleGroup={index > 0}
+            isMobileZoomed={isMobileZoomed}
+            previousCell={index > 0 ? doc.cells[index - 1] : null}
           >
             {cell.type === 'text' && (
               <TextCell cell={cell} isEditing={isEditing} onFocus={() => (selectCell(cell.id), setEditing(cell.id))} />
             )}
             {(cell.type === 'math' || cell.type === 'calculation') && (
-              <MathCell cell={cell} isEditing={isEditing} onFocus={() => (selectCell(cell.id), setEditing(cell.id))} />
+              <MathCell
+                cell={cell}
+                isEditing={isEditing}
+                isZoomed={isMobileZoomed}
+                onFocus={() => (selectCell(cell.id), setEditing(cell.id))}
+              />
             )}
           </CellShell>
         );

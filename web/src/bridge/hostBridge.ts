@@ -1,6 +1,11 @@
-// Bridge verso la shell nativa (.NET/WPF + WebView2). Vedi ARCHITECTURE.md,
-// sezione "Bridge nativo". In sviluppo browser puro (`npm run dev` senza la
-// shell WPF) usa un fallback locale così l'app resta utilizzabile.
+// Bridge verso la shell nativa. Due shell native supportate:
+// - .NET/WPF + WebView2 (desktop Windows, vedi ARCHITECTURE.md "Bridge nativo");
+// - Capacitor (Android — vedi ARCHITECTURE.md "Mobile"): niente dialoghi di
+//   sistema, i file .mathnb vivono nella cartella Documenti dell'app
+//   tramite @capacitor/filesystem; l'elenco per "Open" lo mostra
+//   OpenFileListDialog.tsx, che usa listNotebookFiles/readNotebookFile qui sotto.
+// In sviluppo browser puro (`npm run dev` senza alcuna shell) usa un
+// fallback locale così l'app resta utilizzabile.
 
 export interface OpenFileResult {
   canceled: boolean;
@@ -59,15 +64,70 @@ export function isNativeHostAvailable(): boolean {
   return getHostWebView() !== null;
 }
 
+// ---- Capacitor (Android) ----
+// Import dinamico: @capacitor/core/filesystem non devono impedire il
+// funzionamento della shell WPF o del fallback browser se per qualunque
+// motivo non fossero disponibili a runtime.
+
+export function isCapacitorNative(): boolean {
+  const cap = (window as any).Capacitor;
+  return typeof cap !== 'undefined' && typeof cap.isNativePlatform === 'function' && cap.isNativePlatform();
+}
+
+const MATHNB_EXTENSION = '.mathnb';
+
+async function getFilesystemModule() {
+  return import('@capacitor/filesystem');
+}
+
+export interface NotebookFileInfo {
+  name: string;
+  modifiedAt: number;
+}
+
+/** Elenca i file .mathnb nella cartella Documenti dell'app (Capacitor),
+ * più recenti prima — usato da OpenFileListDialog.tsx. */
+export async function listNotebookFiles(): Promise<NotebookFileInfo[]> {
+  const { Filesystem, Directory } = await getFilesystemModule();
+  const result = await Filesystem.readdir({ path: '', directory: Directory.Documents });
+  return result.files
+    .filter((f) => f.name.endsWith(MATHNB_EXTENSION) && f.type === 'file')
+    .map((f) => ({ name: f.name, modifiedAt: f.mtime ?? 0 }))
+    .sort((a, b) => b.modifiedAt - a.modifiedAt);
+}
+
+export async function readNotebookFile(name: string): Promise<string> {
+  const { Filesystem, Directory, Encoding } = await getFilesystemModule();
+  const result = await Filesystem.readFile({ path: name, directory: Directory.Documents, encoding: Encoding.UTF8 });
+  return typeof result.data === 'string' ? result.data : await (result.data as Blob).text();
+}
+
+async function writeNotebookFile(name: string, contents: string): Promise<void> {
+  const { Filesystem, Directory, Encoding } = await getFilesystemModule();
+  await Filesystem.writeFile({ path: name, directory: Directory.Documents, data: contents, encoding: Encoding.UTF8 });
+}
+
+function sanitizeFileName(name: string): string {
+  const base = name.endsWith(MATHNB_EXTENSION) ? name : `${name}${MATHNB_EXTENSION}`;
+  // niente separatori di percorso: restiamo dentro Directory.Documents.
+  return base.replace(/[/\\]/g, '_');
+}
+
 // ---- Fallback browser (sviluppo senza shell WPF) ----
 
 const LOCAL_STORAGE_KEY = 'mathnotebook.devFallback.lastDocument';
 
-async function browserOpenFile(): Promise<OpenFileResult> {
+/** Apre il selettore file nativo del sistema operativo tramite un
+ * <input type="file"> nascosto e legge il contenuto scelto come testo.
+ * Funziona non solo nel fallback browser di sviluppo, ma anche dentro la
+ * WebView di Capacitor su Android (che supporta input file e apre il
+ * selettore nativo di Storage Access Framework) — vedi
+ * OpenFileListDialog.tsx, pulsante "Sfoglia file...". */
+export async function pickLocalFile(accept: string): Promise<OpenFileResult> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.mathnb,application/json';
+    input.accept = accept;
     input.onchange = () => {
       const file = input.files?.[0];
       if (!file) {
@@ -80,6 +140,10 @@ async function browserOpenFile(): Promise<OpenFileResult> {
     };
     input.click();
   });
+}
+
+async function browserOpenFile(): Promise<OpenFileResult> {
+  return pickLocalFile('.mathnb,.txt,application/json,text/plain');
 }
 
 function browserDownload(filename: string, contents: string) {
@@ -100,17 +164,31 @@ async function browserSaveFile(suggestedName: string, contents: string): Promise
 
 // ---- API pubblica ----
 
+/** Su Capacitor "Open" usa un elenco in-app (OpenFileListDialog.tsx via
+ * listNotebookFiles/readNotebookFile), non questa funzione: niente
+ * dialogo di sistema su Android per scegliere un file. Chi chiama
+ * openFile() deve controllare prima isCapacitorNative(). */
 export async function openFile(): Promise<OpenFileResult> {
   if (isNativeHostAvailable()) return callHost<OpenFileResult>('file.open');
   return browserOpenFile();
 }
 
 export async function saveFile(path: string | undefined, suggestedName: string, contents: string): Promise<SaveFileResult> {
+  if (isCapacitorNative()) {
+    const name = sanitizeFileName(path ?? suggestedName);
+    await writeNotebookFile(name, contents);
+    return { canceled: false, path: name };
+  }
   if (isNativeHostAvailable()) return callHost<SaveFileResult>('file.save', { path, suggestedName, contents });
   return browserSaveFile(suggestedName, contents);
 }
 
 export async function saveFileAs(suggestedName: string, contents: string): Promise<SaveFileResult> {
+  if (isCapacitorNative()) {
+    const name = sanitizeFileName(suggestedName);
+    await writeNotebookFile(name, contents);
+    return { canceled: false, path: name };
+  }
   if (isNativeHostAvailable()) return callHost<SaveFileResult>('file.saveAs', { suggestedName, contents });
   return browserSaveFile(suggestedName, contents);
 }

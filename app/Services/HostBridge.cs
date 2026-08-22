@@ -54,7 +54,7 @@ public sealed class HostBridge
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Math Notebook (*.mathnb)|*.mathnb|Tutti i file (*.*)|*.*",
+            Filter = "Math Notebook (*.mathnb)|*.mathnb|Testo (*.txt)|*.txt|Tutti i file (*.*)|*.*",
             CheckFileExists = true,
         };
 

@@ -253,6 +253,154 @@ button:disabled {
   padding: 6px 0;
 }
 
+/* Cella aperta a schermo intero su mobile mentre è in editing (vedi
+   NotebookView.tsx/useIsMobileLayout, CellShell.tsx). "position: fixed"
+   funziona qui perché nessun antenato (.app-shell/.app-main/
+   .notebook-scroll-area/.notebook-view) usa transform/contain/filter, che
+   creerebbero un containing block diverso dal viewport. */
+.cell-shell--zoomed {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--bg);
+  padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px);
+  overflow-y: auto;
+}
+
+.cell-zoom-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-shrink: 0;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Riferimento rapido alla cella precedente, per non perdere il contesto
+   mentre si lavora a schermo intero su quella corrente. */
+.cell-zoom-peek {
+  flex: 1;
+  min-width: 0;
+  max-height: 4.5em;
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.cell-zoom-peek :is(p, h1, h2, h3) {
+  margin: 0 0 4px;
+}
+
+.cell-peek-empty {
+  font-style: italic;
+}
+
+.cell-zoom-done-button {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+
+/* Pulsanti tastiera-virtuale/menu ricreati fuori dal campo, vedi
+   CellShell.tsx e la regola ::part() più sotto che nasconde gli originali
+   di MathLive dentro la cella. */
+.cell-zoom-tool-button {
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 16px;
+}
+
+/* Contenitore colonna: pulsanti di pan (se presenti) fissi in cima, subito
+   sotto l'header, poi il viewport dell'equazione che si prende tutto lo
+   spazio restante e vi centra il campo al suo interno (vedi
+   .cell-shell--zoomed .math-field-viewport) — così i pulsanti restano
+   sempre "in alto" (vedi conversazione) indipendentemente da dove
+   l'equazione stessa finisce per centrarsi. */
+.cell-shell--zoomed .cell-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* .math-field-viewport (vedi MathCell.tsx): fuori dallo zoom è un
+   semplice contenitore di passaggio, largo quanto la cella. */
+.math-field-viewport {
+  width: 100%;
+  min-width: 0;
+}
+
+.math-field-pan-controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-shrink: 0;
+  padding-bottom: 8px;
+}
+
+/* flex:1 lascia allo spazio restante sotto ai pulsanti (spesso parecchio,
+   per una singola riga) di essere usato per centrare l'equazione invece di
+   lasciare un vuoto sotto, che sembrava "spazio sprecato" (vedi
+   conversazione, screenshot con grande area nera vuota). */
+.cell-shell--zoomed .math-field-viewport {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* align-items di default è "stretch": costringerebbe il math-field a
+     riempire tutta la larghezza del viewport, vanificando la misura della
+     larghezza naturale in MathCell.tsx/measure (stesso bug già preso una
+     volta con .cell-content, vedi conversazione — qui si ripresenta perché
+     il viewport è tornato a essere un flex container). */
+  align-items: flex-start;
+  /* "Finestra" del pan orizzontale: il math-field dentro resta alla sua
+     larghezza naturale (vedi MathCell.tsx/measure) e viene spostato con
+     transform; qui si taglia solo la parte che eccede. */
+  overflow: hidden;
+}
+
+.cell-pan-button {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.cell-pan-button:disabled {
+  opacity: 0.35;
+}
+
+.cell-shell--zoomed math-field {
+  font-size: 1.6rem;
+}
+
+.cell-shell--zoomed .text-cell-editor {
+  font-size: 1.25rem;
+  min-height: 60vh;
+}
+
 /* ---- Text cell ---- */
 
 .text-cell-editor {
@@ -490,6 +638,35 @@ math-field::part(container) {
   color: var(--text);
 }
 
+.file-list {
+  list-style: none;
+  margin: 0 0 4px;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.file-list-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 12px;
+  background: var(--bg);
+}
+
+.file-list li:last-child .file-list-item {
+  border-bottom: none;
+}
+
+.file-list-item:hover {
+  background: var(--bg-subtle);
+}
+
 .dialog-actions {
   display: flex;
   justify-content: flex-end;
@@ -507,4 +684,164 @@ math-field::part(container) {
 
 .focus-mode .notebook-scroll-area {
   padding-top: 80px;
+}
+
+/* ---- Pulsante flottante per la Math Palette (solo mobile, vedi sotto) ---- */
+
+.palette-fab {
+  display: none;
+}
+
+/* ---- Mobile (Capacitor/telefono, vedi ARCHITECTURE.md "Mobile") ----
+   Sotto questa soglia: la Math Palette diventa un pannello a comparsa dal
+   basso invece di stare accanto al notebook (a 320px fissi non ci
+   starebbe nulla su uno schermo da telefono), la toolbar scorre
+   orizzontalmente invece di andare a capo, e i bersagli tattili (pulsanti,
+   voci di palette/menu) diventano più grandi (min. 44px, misura minima
+   comunemente raccomandata per il tocco). */
+@media (max-width: 768px) {
+  .notebook-scroll-area {
+    padding: 20px 12px 140px;
+  }
+
+  .app-toolbar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-toolbar-actions {
+    flex-shrink: 0;
+  }
+
+  .app-toolbar-actions button {
+    min-height: 40px;
+    padding: 6px 12px;
+  }
+
+  .cell-menu-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Su schermi stretti l'84px fisso del gutter desktop lascia troppo poco
+     spazio al contenuto (espressioni lunghe, matrici): lo si riduce alla
+     sola larghezza del pulsante menu, nascondendo l'etichetta di tipo
+     (ridondante: il colore del bordo e il menu la mostrano comunque). */
+  .cell-gutter {
+    width: 44px;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .cell-type-badge {
+    display: none;
+  }
+
+  /* Lo spazio recuperato dal gutter non basta sempre: un'espressione o
+     matrice larga deve poter scorrere orizzontalmente dentro la propria
+     cella invece di essere tagliata o spingere in largo tutta la pagina. */
+  .cell-content {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* I pulsanti nativi di MathLive (tastiera virtuale, menu formula) dentro
+     il campo non servono su mobile: nella lista rubano spazio prezioso a
+     un'espressione già stretta, e da zoomati sono ricreati fuori dalla
+     cella (vedi CellShell.tsx, .cell-zoom-tool-button) dove c'è spazio ed
+     è chiaro cosa fanno. */
+  math-field::part(virtual-keyboard-toggle),
+  math-field::part(menu-toggle) {
+    display: none;
+  }
+
+  /* La barra laterale fissa lascia posto a un pannello a comparsa dal
+     basso, alto la maggior parte dello schermo, sopra al notebook. */
+  .palette-sidebar {
+    position: fixed;
+    inset: auto 0 0 0;
+    top: 15%;
+    width: auto;
+    height: 85%;
+    /* Sopra a .cell-shell--zoomed (z-index 70): la palette deve restare
+       raggiungibile anche mentre una cella è aperta a schermo intero. */
+    z-index: 80;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: var(--shadow);
+  }
+
+  /* Da collassata, la barra non occupa più una striscia verticale fissa:
+     è il FAB qui sotto ad aprirla. */
+  .palette-sidebar.palette-collapsed {
+    display: none;
+  }
+
+  .palette-expand-button,
+  .palette-collapse-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .palette-item {
+    min-height: 44px;
+  }
+
+  .palette-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    border: none;
+    box-shadow: var(--shadow);
+    font-size: 22px;
+    /* Sopra a .cell-shell--zoomed (z-index 70): resta cliccabile anche
+       mentre una cella è aperta a schermo intero. */
+    z-index: 80;
+  }
+
+  .dialog-box-wide {
+    width: 92vw;
+  }
+}
+
+/* Cella zoomata con poco spazio verticale: landscape su telefono (schermo
+   già basso) e/o tastiera aperta. Con android:windowSoftInputMode
+   ="adjustResize" (vedi AndroidManifest.xml) la WebView si ridimensiona
+   davvero quando compare la tastiera, quindi questa query scatta anche in
+   quel caso, non solo in landscape "a riposo". Si libera spazio togliendo
+   il peek (il riferimento alla cella precedente è comunque secondario
+   rispetto a poter vedere ciò che si sta scrivendo) e riducendo un po' i
+   font ingranditi dello zoom. */
+@media (max-height: 420px) {
+  .cell-shell--zoomed {
+    padding: 8px 12px;
+  }
+
+  .cell-zoom-header {
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+
+  .cell-zoom-peek {
+    display: none;
+  }
+
+  .cell-shell--zoomed math-field {
+    font-size: 1.3rem;
+  }
+
+  .cell-shell--zoomed .text-cell-editor {
+    font-size: 1.1rem;
+    min-height: 0;
+  }
 }
