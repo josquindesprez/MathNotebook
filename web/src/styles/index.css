@@ -1,0 +1,454 @@
+/* Math Notebook — tema chiaro/scuro, layout, tipografia. Vedi UI_SPEC.md. */
+
+:root {
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #f7f7f8;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --text: #18181b;
+  --text-muted: #71717a;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --danger: #dc2626;
+  --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #18181b;
+    --bg-elevated: #202023;
+    --bg-subtle: #202023;
+    --border: #313135;
+    --border-strong: #3f3f46;
+    --text: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --accent: #818cf8;
+    --accent-soft: #26264a;
+    --danger: #f87171;
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--border-strong);
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.app-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.app-title {
+  font-weight: 600;
+}
+
+.app-toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.notebook-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 48px 24px 200px;
+}
+
+.notebook-view {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.notebook-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  opacity: 0.7;
+}
+
+.notebook-add-row:hover {
+  opacity: 1;
+}
+
+/* ---- Celle ---- */
+
+.cell-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+
+.cell-shell.is-selected {
+  border-color: var(--border-strong);
+  background: var(--bg-subtle);
+}
+
+.cell-shell.is-editing {
+  border-color: var(--accent);
+  background: var(--bg-elevated);
+}
+
+.cell-gutter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 84px;
+  padding-top: 4px;
+}
+
+.cell-type-badge {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cell-menu-anchor {
+  position: relative;
+}
+
+.cell-menu-button {
+  border: none;
+  background: transparent;
+  padding: 2px 6px;
+  color: var(--text-muted);
+}
+
+.cell-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 160px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cell-menu button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.cell-menu button:hover {
+  background: var(--bg-subtle);
+}
+
+.cell-menu-separator {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.cell-menu-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 4px 8px 0;
+}
+
+.cell-menu-danger {
+  color: var(--danger);
+}
+
+.cell-content {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+}
+
+/* ---- Text cell ---- */
+
+.text-cell-editor {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.text-cell-preview {
+  cursor: text;
+}
+
+.text-cell-preview p {
+  margin: 0 0 8px;
+}
+
+.text-cell-preview h1,
+.text-cell-preview h2,
+.text-cell-preview h3 {
+  margin: 4px 0 8px;
+}
+
+.text-cell-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ---- Math cell ---- */
+
+math-field {
+  width: 100%;
+  border: none;
+  --contains-highlight-background-color: var(--accent-soft);
+  font-size: 1.15rem;
+  padding: 4px 0;
+}
+
+math-field::part(container) {
+  border: none;
+}
+
+/* ---- Status bar ---- */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.status-bar-spacer {
+  flex: 1;
+}
+
+/* ---- Math Palette ---- */
+
+.palette-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+}
+
+.palette-collapsed {
+  width: 32px;
+  align-items: center;
+  padding-top: 12px;
+}
+
+.palette-expand-button,
+.palette-collapse-button {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.palette-header {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.palette-search {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.palette-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.palette-category-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 4px 0 12px;
+}
+
+.palette-item {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  border-radius: 8px;
+}
+
+.palette-item-glyph {
+  pointer-events: none;
+}
+
+.palette-item-tooltip {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 6px;
+  background: var(--text);
+  color: var(--bg);
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 30;
+  text-align: center;
+}
+
+.palette-item:hover .palette-item-tooltip {
+  display: block;
+}
+
+.palette-item-hint {
+  font-family: var(--font-mono);
+  opacity: 0.8;
+}
+
+/* ---- Dialoghi (es. Custom matrix) ---- */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.dialog-box {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  width: 260px;
+}
+
+.dialog-box h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+
+.dialog-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.dialog-row input {
+  width: 64px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.dialog-primary {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* ---- Focus mode ---- */
+
+.focus-mode .notebook-scroll-area {
+  padding-top: 80px;
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "GZWzMaQYWC4=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\josqu\\MathNotebook\\app\\MathNotebook.App.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\josqu\\.nuget\\packages\\microsoft.web.webview2\\1.0.4129.50\\microsoft.web.webview2.1.0.4129.50.nupkg.sha512"
+  ],
+  "logs": []
+}

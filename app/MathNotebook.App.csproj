@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>MathNotebook</AssemblyName>
+    <RootNamespace>MathNotebook.App</RootNamespace>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <!-- App completamente locale: nessuna chiamata di rete, nessuna telemetria. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4129.50" />
+  </ItemGroup>
+
+  <!-- Stessa icona anche come risorsa pack, per l'icona nella title bar
+       della finestra (MainWindow.xaml, proprietà Icon). -->
+  <ItemGroup>
+    <Resource Include="icon.ico" />
+  </ItemGroup>
+
+  <!--
+    Copia il bundle statico del frontend (prodotto da "npm run build" in
+    ../web, vedi README.md) nella cartella di output, così WebView2 può
+    caricarlo da disco tramite un virtual host mapping locale (vedi
+    ARCHITECTURE.md, "Bridge nativo"). Nessuna rete coinvolta.
+  -->
+  <ItemGroup>
+    <None Include="..\web\dist\**\*" Condition="Exists('..\web\dist')">
+      <Link>web\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
