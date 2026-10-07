@@ -47,7 +47,7 @@ object VplParser {
         var lineNumber = 0
         reader.lineSequence().forEach { rawLine ->
             lineNumber++
-            val line = rawLine.trimStart('﻿').trimEnd()
+            val line = rawLine.trimStart('\uFEFF').trimEnd()
             if (line.isBlank()) return@forEach
             val match = lineRegex.matchEntire(line)
                 ?: throw InvalidSourceException("Riga $lineNumber non valida")

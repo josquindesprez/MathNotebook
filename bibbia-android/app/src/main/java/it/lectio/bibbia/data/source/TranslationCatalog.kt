@@ -31,7 +31,7 @@ object TranslationCatalog {
         sourceUrl = "https://ebible.org/eng-kjv2006/",
         versification = Versification.STANDARD,
         canonOrder = CanonOrder.PROTESTANT,
-        origin = TranslationOrigin.Bundled("bibles/eng-kjv2006_vpl.txt.gz"),
+        origin = TranslationOrigin.Bundled("bibles/eng-kjv2006_vpl.txt.gzip"),
         conventions = TextConventions(bracketsAreItalics = true, pilcrowMarksParagraph = true),
         expectedVerses = 31_102,
     )
@@ -51,7 +51,7 @@ object TranslationCatalog {
         sourceUrl = "https://ebible.org/ita1927/",
         versification = Versification.STANDARD,
         canonOrder = CanonOrder.PROTESTANT,
-        origin = TranslationOrigin.Bundled("bibles/ita1927_vpl.txt.gz"),
+        origin = TranslationOrigin.Bundled("bibles/ita1927_vpl.txt.gzip"),
         expectedVerses = 31_102,
     )
 
@@ -69,7 +69,7 @@ object TranslationCatalog {
         sourceUrl = "https://ebible.org/latVUC/",
         versification = Versification.VULGATE,
         canonOrder = CanonOrder.VULGATE,
-        origin = TranslationOrigin.Bundled("bibles/latVUC_vpl.txt.gz"),
+        origin = TranslationOrigin.Bundled("bibles/latVUC_vpl.txt.gzip"),
         conventions = TextConventions(stripBrackets = true),
         expectedVerses = 35_809,
     )

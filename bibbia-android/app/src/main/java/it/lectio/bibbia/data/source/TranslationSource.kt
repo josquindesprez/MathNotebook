@@ -48,12 +48,24 @@ class DefaultTranslationSourceFactory(private val context: Context) : Translatio
 class AssetTranslationSource(private val context: Context, private val assetPath: String) : TranslationSource {
     override suspend fun open(): InputStream = withContext(Dispatchers.IO) {
         try {
-            val raw = context.assets.open(assetPath)
-            if (assetPath.endsWith(".gz")) GZIPInputStream(raw.buffered()) else raw
+            maybeGunzip(context.assets.open(assetPath))
         } catch (e: IOException) {
             throw SourceException(InstallError.INVALID_DATA, "Testo incluso non leggibile: $assetPath", e)
         }
     }
+}
+
+/**
+ * Decomprime il flusso se è in formato gzip (riconosciuto dai byte iniziali 1F 8B, non
+ * dall'estensione: il packaging Android può rinominare o decomprimere gli asset).
+ */
+fun maybeGunzip(input: InputStream): InputStream {
+    val buffered = input.buffered()
+    buffered.mark(2)
+    val b1 = buffered.read()
+    val b2 = buffered.read()
+    buffered.reset()
+    return if (b1 == 0x1f && b2 == 0x8b) GZIPInputStream(buffered) else buffered
 }
 
 /**

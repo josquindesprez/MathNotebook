@@ -44,8 +44,9 @@ android {
         buildConfig = true
     }
     androidResources {
-        // I testi biblici sono già compressi (gzip).
-        noCompress += "gz"
+        // I testi biblici sono già compressi (gzip). Estensione ".gzip" e non ".gz": AGP
+        // decomprime e rinomina automaticamente gli asset ".gz".
+        noCompress += "gzip"
     }
     testOptions {
         unitTests {

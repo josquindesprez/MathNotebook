@@ -75,7 +75,7 @@ class BookmarkRepositoryTest {
     }
 
     @Test
-    fun `ordinamento dal più recente, rinomina, elimina e ripristina`() = runTest {
+    fun `ordinamento dal piu recente, rinomina, elimina e ripristina`() = runTest {
         repo.add("riveduta", ChapterRef("PSA", 42), 1, "primo")
         repo.add("riveduta", ChapterRef("ISA", 40), 31, "secondo")
         repo.add("riveduta", ChapterRef("JHN", 1), 1, "terzo")

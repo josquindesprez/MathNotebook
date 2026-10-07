@@ -96,7 +96,7 @@ class TranslationRepositoryTest {
     }
 
     @Test
-    fun `testo corrotto a metà - transazione annullata`() = runTest {
+    fun `testo corrotto a meta - transazione annullata`() = runTest {
         sources.setText("kjv", "GEN 1:1 In the beginning.\nriga non valida\n")
         val result = translations.install("kjv")
         assertThat(result.isFailure).isTrue()

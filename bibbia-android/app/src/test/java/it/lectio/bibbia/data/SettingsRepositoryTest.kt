@@ -77,7 +77,7 @@ class SettingsRepositoryTest {
     }
 
     @Test
-    fun `valori fuori limite vengono riportati nell'intervallo`() {
+    fun `valori fuori limite vengono riportati nell intervallo`() {
         val file = File(folder.root, "c.preferences_pb")
         withRepository(file) { repo ->
             repo.update { it.copy(fontSizeSp = 200f, lineHeight = 0.1f) }

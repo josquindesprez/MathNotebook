@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- Il controllo ortografico di lint è in inglese: segnala come errori parole italiane corrette. -->
+    <issue id="Typos" severity="ignore" />
+    <!-- Nessun backup: scelta voluta per la privacy (vedi AndroidManifest). -->
+    <issue id="DataExtractionRules" severity="ignore" />
+    <!-- aapt richiede mipmap-anydpi-v26 per le icone adattive. -->
+    <issue id="ObsoleteSdkInt" severity="ignore" />
+</lint>

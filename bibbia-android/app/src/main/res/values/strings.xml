@@ -45,7 +45,10 @@
     <string name="goto_hint">es. Gv 3,16 · Salmi 137 · Isaia 40</string>
     <string name="reference_not_found">Riferimento non riconosciuto</string>
     <string name="choose_book_chapter">Libro e capitolo</string>
-    <string name="chapters_count">%1$d capitoli</string>
+    <plurals name="chapters_count">
+        <item quantity="one">%1$d capitolo</item>
+        <item quantity="other">%1$d capitoli</item>
+    </plurals>
 
     <!-- Lettura -->
     <string name="previous_chapter">Capitolo precedente</string>

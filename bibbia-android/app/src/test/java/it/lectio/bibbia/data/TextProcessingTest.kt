@@ -81,4 +81,14 @@ class TextProcessingTest {
         assertThat(preview.length).isAtMost(51)
         assertThat(preview).endsWith("…")
     }
+
+    @Test
+    fun `gzip riconosciuto dal contenuto, non dall estensione`() {
+        val plain = "GEN 1:1 Testo".toByteArray()
+        val zipped = java.io.ByteArrayOutputStream().also { out ->
+            java.util.zip.GZIPOutputStream(out).use { it.write(plain) }
+        }.toByteArray()
+        assertThat(it.lectio.bibbia.data.source.maybeGunzip(zipped.inputStream()).readBytes()).isEqualTo(plain)
+        assertThat(it.lectio.bibbia.data.source.maybeGunzip(plain.inputStream()).readBytes()).isEqualTo(plain)
+    }
 }
