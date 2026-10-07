@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bibbia</string>
+
+    <!-- Home -->
+    <string name="home_title">BIBBIA</string>
+    <string name="home_subtitle">Lettura personale delle Scritture</string>
+    <string name="preparing_offline">Preparazione dei testi per la lettura offline…</string>
+    <string name="continue_reading">Continua lettura</string>
+    <string name="start_reading">Genesi 1</string>
+    <string name="translations">Traduzioni</string>
+    <string name="manage_translations">Altre traduzioni e fonti</string>
+    <string name="books">Libri</string>
+    <string name="old_testament">Antico Testamento</string>
+    <string name="new_testament">Nuovo Testamento</string>
+    <string name="bookmarks">Segnalibri</string>
+    <string name="bookmarks_empty_short">Nessun segnalibro, per ora.</string>
+    <string name="all_bookmarks">Tutti i segnalibri</string>
+    <string name="all_bookmarks_count">Tutti i segnalibri (%1$d)</string>
+    <string name="search">Ricerca</string>
+    <string name="settings">Impostazioni</string>
+    <string name="about">Informazioni e licenze</string>
+    <string name="installing_percent">Preparazione… %1$d%%</string>
+    <string name="install_failed_tap">Installazione non riuscita — tocca per riprovare</string>
+    <string name="waiting">In attesa</string>
+
+    <!-- Navigazione generale -->
+    <string name="back">Indietro</string>
+    <string name="close">Chiudi</string>
+    <string name="clear">Cancella</string>
+    <string name="options">Opzioni</string>
+    <string name="save">Salva</string>
+    <string name="cancel">Annulla</string>
+    <string name="undo">Annulla</string>
+    <string name="delete">Elimina</string>
+    <string name="remove">Rimuovi</string>
+    <string name="retry">Riprova</string>
+    <string name="install">Installa</string>
+    <string name="download">Scarica</string>
+    <string name="download_size">Scarica (circa %1$d MB)</string>
+    <string name="go">Vai</string>
+
+    <!-- Vai a riferimento -->
+    <string name="goto_label">Vai a riferimento</string>
+    <string name="goto_hint">es. Gv 3,16 · Salmi 137 · Isaia 40</string>
+    <string name="reference_not_found">Riferimento non riconosciuto</string>
+    <string name="choose_book_chapter">Libro e capitolo</string>
+    <string name="chapters_count">%1$d capitoli</string>
+
+    <!-- Lettura -->
+    <string name="previous_chapter">Capitolo precedente</string>
+    <string name="next_chapter">Capitolo successivo</string>
+    <string name="bookmark_chapter">Segna il capitolo</string>
+    <string name="remove_chapter_bookmark">Rimuovi il segnalibro del capitolo</string>
+    <string name="bookmark_added">Segnalibro aggiunto</string>
+    <string name="bookmark_add_note">Nota</string>
+    <string name="bookmark_removed">Segnalibro rimosso</string>
+    <string name="chapter_not_in_translation">Questo capitolo non è presente nella traduzione scelta</string>
+    <string name="copied">Copiato</string>
+    <string name="chapter_empty_title">Capitolo non disponibile</string>
+    <string name="chapter_empty_message">Il testo di questo capitolo non è presente nella traduzione scelta.</string>
+    <string name="preparing_text">Il testo è in preparazione per la lettura offline. Serve solo al primo avvio.</string>
+    <string name="install_failed">Non è stato possibile installare questa traduzione.</string>
+    <string name="translation_not_downloaded">Questa traduzione non è ancora stata scaricata. Dopo il download resterà disponibile anche senza connessione.</string>
+    <string name="action_bookmark">Segnalibro</string>
+    <string name="action_unbookmark">Rimuovi</string>
+    <string name="action_highlight">Evidenzia</string>
+    <string name="action_compare">Confronta</string>
+    <string name="action_copy">Copia</string>
+    <string name="highlight_none">Nessuna</string>
+    <string name="compare_title">Confronto fra traduzioni</string>
+    <string name="compare_missing">Versetto non presente in questa traduzione.</string>
+    <string name="bookmark_note_title">Nome o nota</string>
+    <string name="bookmark_note_hint">es. Sete di Dio</string>
+
+    <!-- Segnalibri -->
+    <string name="bookmarks_empty_title">Nessun segnalibro</string>
+    <string name="bookmarks_empty_message">Durante la lettura tocca un versetto e scegli «Segnalibro», oppure usa il nastro in alto per segnare un intero capitolo.</string>
+    <string name="bookmark_deleted">Segnalibro eliminato</string>
+    <string name="add_note">Aggiungi nota</string>
+    <string name="edit_note">Modifica nota</string>
+
+    <!-- Libri -->
+    <string name="books_unavailable_title">Testo non ancora pronto</string>
+    <string name="books_unavailable_message">La traduzione scelta è in preparazione o non è installata.</string>
+
+    <!-- Ricerca -->
+    <string name="search_hint">Parole da cercare</string>
+    <string name="scope_all">Tutta la Bibbia</string>
+    <string name="scope_ot">AT</string>
+    <string name="scope_nt">NT</string>
+    <string name="search_intro_title">Cerca nelle Scritture</string>
+    <string name="search_intro_message">La ricerca avviene sul dispositivo, anche senza connessione. Le frasi tra virgolette vengono cercate esattamente.</string>
+    <string name="search_no_results_title">Nessun risultato</string>
+    <string name="search_no_results_message">Prova con meno parole o con un\'altra traduzione.</string>
+    <string name="search_no_texts_title">Nessun testo installato</string>
+    <string name="search_no_texts_message">Attendi la fine della preparazione dei testi.</string>
+    <string name="search_count_limited">Primi %1$d di %2$d risultati</string>
+    <plurals name="search_count">
+        <item quantity="one">%1$d risultato</item>
+        <item quantity="other">%1$d risultati</item>
+    </plurals>
+
+    <!-- Impostazioni -->
+    <string name="preview">Anteprima</string>
+    <string name="setting_theme">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Carta</string>
+    <string name="theme_sepia">Seppia</string>
+    <string name="theme_dark">Notte</string>
+    <string name="setting_font">Carattere</string>
+    <string name="font_garamond">Garamond</string>
+    <string name="font_literata">Literata</string>
+    <string name="font_system">Serif di sistema</string>
+    <string name="setting_size">Dimensione</string>
+    <string name="setting_line_height">Interlinea</string>
+    <string name="setting_layout">Impaginazione</string>
+    <string name="layout_verses">Versetti</string>
+    <string name="layout_page">Pagina</string>
+    <string name="setting_verse_numbers">Numeri dei versetti</string>
+    <string name="setting_justify">Testo giustificato</string>
+    <string name="setting_keep_screen_on">Schermo sempre acceso durante la lettura</string>
+
+    <!-- Traduzioni -->
+    <string name="translations_intro">I testi sono conservati sul dispositivo: dopo l\'installazione lettura, ricerca e segnalibri funzionano senza Internet.</string>
+    <string name="license_label">Licenza: %1$s</string>
+    <string name="installed_summary">Installata · %1$s versetti · %2$s</string>
+    <string name="cei_note">Perché non la CEI 2008? Il testo della Bibbia CEI 2008 è protetto da diritto d\'autore (© Fondazione di Religione Santi Francesco d\'Assisi e Caterina da Siena) e non può essere ridistribuito senza autorizzazione. Per questo l\'app usa traduzioni italiane di pubblico dominio. L\'architettura permette di aggiungere la CEI in futuro tramite una fonte autorizzata.</string>
+
+    <!-- Errori -->
+    <string name="error_no_connection">Nessuna connessione a Internet. I testi già installati restano leggibili.</string>
+    <string name="error_timeout">Il server non ha risposto in tempo. Riprova più tardi.</string>
+    <string name="error_server">Il server della fonte non ha fornito il testo. Riprova più tardi.</string>
+    <string name="error_invalid_data">Il testo ricevuto non è valido.</string>
+    <string name="error_storage">Spazio di archiviazione insufficiente.</string>
+    <string name="error_unknown">Errore imprevisto durante l\'installazione.</string>
+
+    <!-- Informazioni -->
+    <string name="version">Versione %1$s</string>
+    <string name="privacy_title">Privacy</string>
+    <string name="privacy_text">Nessun account, nessun login, nessuna pubblicità, nessuna statistica d\'uso. Segnalibri, note, evidenziazioni, preferenze e ultima posizione di lettura sono salvati soltanto su questo dispositivo e sono esclusi dal backup su cloud. L\'app si collega a Internet esclusivamente quando scegli di scaricare una traduzione aggiuntiva.</string>
+    <string name="texts_and_licenses">Testi e licenze</string>
+    <string name="fonts_title">Caratteri tipografici</string>
+    <string name="fonts_text">EB Garamond (© The EB Garamond Project Authors) e Literata (© The Literata Project Authors), distribuiti con SIL Open Font License 1.1.</string>
+</resources>
